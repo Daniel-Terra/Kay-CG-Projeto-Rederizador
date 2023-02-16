@@ -48,6 +48,16 @@ class GL:
         #gpu.GPU.set_pixel(3, 1, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
         # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
 
+        #PONTOS
+        lista_di_pontu = [1.2, 2.6, 5.0, 8.2, 7.3, 12.1, 17.9, 5.3, 11.3, 19.7]
+
+        while len(lista_di_pontu) > 1:
+            print('x', lista_di_pontu[0])
+            print('y', lista_di_pontu[1])
+            print(len(lista_di_pontu))
+            del lista_di_pontu[0]
+            del lista_di_pontu[0]
+
     @staticmethod
     def polyline2D(lineSegments, colors):
         """Função usada para renderizar Polyline2D."""
