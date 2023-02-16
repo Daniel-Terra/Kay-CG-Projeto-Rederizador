@@ -8,9 +8,9 @@
 
         <Transform>
             <Shape>
-                <Polypoint2D point='15.0 15.0'/> <!-- https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#Polypoint2D -->
-                <Appearance> <!-- https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/shape.html#Appearance -->
-                    <Material emissiveColor='1 0 1'/> <!-- https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/shape.html#Material -->
+                <Polypoint2D point='15.0 15.0'/> https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/geometry2D.html#Polypoint2D
+                <Appearance> https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/shape.html#Appearance
+                    <Material emissiveColor='1 0 1'/> https://www.web3d.org/documents/specifications/19775-1/V3.0/Part01/components/shape.html#Material
                 </Appearance>
             </Shape>
         </Transform>
