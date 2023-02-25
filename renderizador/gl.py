@@ -48,15 +48,14 @@ class GL:
         #gpu.GPU.set_pixel(3, 1, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
         # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
 
-        #PONTOS
-        lista_di_pontu = [1.2, 2.6, 5.0, 8.2, 7.3, 12.1, 17.9, 5.3, 11.3, 19.7]
-
-        while len(lista_di_pontu) > 1:
-            print('x', lista_di_pontu[0])
-            print('y', lista_di_pontu[1])
-            print(len(lista_di_pontu))
-            del lista_di_pontu[0]
-            del lista_di_pontu[0]
+        lista_rgb_float = colors['emissiveColor']
+        while len(point) > 1:
+            gpu.GPU.set_pixel(int(point[0]),int(point[1]), 
+                              int(255*lista_rgb_float[0]), 
+                              int(255*lista_rgb_float[1]), 
+                              int(255*lista_rgb_float[2]) )
+            del point[0]
+            del point[0]
 
     @staticmethod
     def polyline2D(lineSegments, colors):
@@ -71,12 +70,56 @@ class GL:
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
 
-        print("Polyline2D : lineSegments = {0}".format(lineSegments)) # imprime no terminal
-        print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
-        # Exemplo:
-        pos_x = GL.width//2
-        pos_y = GL.height//2
-        gpu.GPU.set_pixel(pos_x, pos_y, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
+        # gets four by four the list to create each line
+        linha = []
+        for num in lineSegments:
+            linha.append(num)
+            if len(linha) == 4:
+                
+                # where do we wanna get and the list of the points that will be written
+                target = [linha[2],linha[3]]
+                point = [linha[0],linha[1]]
+
+                print("point:", point, "target:",target)
+                
+                # declare the angular variation between the first point and the target
+                dx = target[0]-point[0]
+                dy = target[1]-point[1]
+                
+                if dx == 0:
+                    a = 0
+                else:
+                    a = dy/dx
+                print("angular variation:", a)
+                
+                #lets beguin with the point adding
+                i = 1
+                while i < 10: #[int(point[-2]),int(point[-1])] != [int(target[0]),int(target[1])]:
+                    if a > 0:
+                        print("next:",int(point[0]+i),int(point[1]+i*abs(a)))
+                        i += 1
+                    if a < 0:
+                        print("next:",int(point[0]+i*abs(a)),int(point[1]+i))
+                        i += 1
+                    else:
+                        if dx == 0:
+                           print("sou vertical")
+                           i += 1
+                        if dy == 0:
+                            print("sou horizontal")
+                            i += 1
+
+                #point.append(point[0]+i,point[1]+i*a)
+
+                # finally is the same of adding any pixel
+                #rgb_float = colors['emissiveColor']
+                #while len(point) > 1:
+                #    gpu.GPU.set_pixel(int(point[0]),int(point[1]), 
+                #                    int(255*rgb_float[0]), 
+                #                    int(255*rgb_float[1]), 
+                #                    int(255*rgb_float[2]) )
+                #    del point[0]
+                #    del point[0]
 
     @staticmethod
     def triangleSet2D(vertices, colors):
