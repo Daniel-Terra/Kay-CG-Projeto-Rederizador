@@ -101,7 +101,7 @@ class GL:
                     # the angular variation due dx
                     a = dy/dx if dx != 0 else 0
                     # for each add on x
-                    for i in range(0,dx+1):
+                    for i in range(dx+1):
                         # set the pixel on gpu
                         GL.polypoint2D([int(x),
                                         int(y)],
@@ -116,7 +116,7 @@ class GL:
                     # the angular variation due dy
                     a = dx/dy if dy != 0 else 0
                     # for each add on dy
-                    for i in range(0,dy+1):
+                    for i in range(dy+1):
                         # set the pixel on gpu
                         GL.polypoint2D([int(x),
                                         int(y)],
@@ -141,15 +141,36 @@ class GL:
         # Exemplo:
         #gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
 
-        # gets six by six the list to create each triangle
+        # gets six by six the list to create each triangle as a matrix
+        xy = []
         triangulo = []
         for num in vertices:
-            triangulo.append(int(num))
-            if len(triangulo) == 6:
+            xy.append(int(num))
+            print(num)
+            if len(xy) == 2:
+                triangulo.append(xy)
+                xy = []
+                if len(triangulo) == 3:
 
-                v1 = [triangulo[0],triangulo[1]]; v2 = [triangulo[2],triangulo[3]]; v3 = [triangulo[4],triangulo[5]]
-                linha1 = v1+v2; linha2 = v2+v3; linha3 = v3+v1
-                GL.polyline2D(linha1,colors);GL.polyline2D(linha2,colors);GL.polyline2D(linha3,colors)
+                    # declaring the vertices of the triangle
+                    x1, x2, x3 = triangulo[0][0], triangulo[1][0], triangulo[2][0]
+                    y1, y2, y3 = triangulo[0][1], triangulo[1][1], triangulo[2][1]
+                    
+                    # using min and max of each x and y of the matrix, we discover the bounding box
+                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
+                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+
+                    # to loop every single pixel inside the bounding box
+                    for y in range(ymin,ymax):
+                        for x in range(xmin,xmax):
+                            
+                            # to test if the value of each point is out or in the triangle
+                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                            linha3 = (y3-y1)*x - (x3-x1)*y + y1*(x3-x1) - x1*(y3-y1)
+
+                            if linha1 >= 0 and linha2 >= 0 and linha3 <= 0:
+                                GL.polypoint2D([x,y],colors)
 
     @staticmethod
     def triangleSet(point, colors):
