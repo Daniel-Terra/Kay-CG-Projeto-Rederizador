@@ -73,54 +73,59 @@ class GL:
         # gets four by four the list to create each line
         linha = []
         for num in lineSegments:
-            linha.append(num)
+            linha.append(int(num))
             if len(linha) == 4:
                 
                 # where do we wanna get and the list of the points that will be written
                 target = [linha[2],linha[3]]
-                point = [linha[0],linha[1]]
-
+                point  = [linha[0],linha[1]]
+                
                 print("point:", point, "target:",target)
                 
+                # iterative x and y
+                x = linha[0]
+                y = linha[1]
+
                 # declare the angular variation between the first point and the target
-                dx = target[0]-point[0]
-                dy = target[1]-point[1]
-                
-                if dx == 0:
-                    a = 0
-                else:
-                    a = dy/dx
-                print("angular variation:", a)
-                
+                dx = abs(target[0]-point[0])
+                dy = abs(target[1]-point[1])
+
+                # sign for each axis variation
+                sign_dx = 1 if target[0] > point[0] else -1
+                sign_dy = 1 if target[1] > point[1] else -1
+
                 #lets beguin with the point adding
-                i = 1
-                while i < 10: #[int(point[-2]),int(point[-1])] != [int(target[0]),int(target[1])]:
-                    if a > 0:
-                        print("next:",int(point[0]+i),int(point[1]+i*abs(a)))
-                        i += 1
-                    if a < 0:
-                        print("next:",int(point[0]+i*abs(a)),int(point[1]+i))
-                        i += 1
-                    else:
-                        if dx == 0:
-                           print("sou vertical")
-                           i += 1
-                        if dy == 0:
-                            print("sou horizontal")
-                            i += 1
+                
+                #this line is horizontal
+                if dx>=dy:
+                    # the angular variation due dx
+                    a = dy/dx if dx != 0 else 0
+                    # for each add on x
+                    for i in range(0,dx+1):
+                        # set the pixel on gpu
+                        GL.polypoint2D([int(x),
+                                        int(y)],
+                                        colors)
+                        # move towards x
+                        x+=sign_dx
+                        # rise angular variation
+                        y+=sign_dy*a 
 
-                #point.append(point[0]+i,point[1]+i*a)
-
-                # finally is the same of adding any pixel
-                #rgb_float = colors['emissiveColor']
-                #while len(point) > 1:
-                #    gpu.GPU.set_pixel(int(point[0]),int(point[1]), 
-                #                    int(255*rgb_float[0]), 
-                #                    int(255*rgb_float[1]), 
-                #                    int(255*rgb_float[2]) )
-                #    del point[0]
-                #    del point[0]
-
+                #vertical 
+                if dy>dx:
+                    # the angular variation due dy
+                    a = dx/dy if dy != 0 else 0
+                    # for each add on dy
+                    for i in range(0,dy+1):
+                        # set the pixel on gpu
+                        GL.polypoint2D([int(x),
+                                        int(y)],
+                                        colors)
+                        # move towards y
+                        x+=sign_dx*a
+                        # dash angular variation
+                        y+=sign_dy
+                        
     @staticmethod
     def triangleSet2D(vertices, colors):
         """Função usada para renderizar TriangleSet2D."""
@@ -131,10 +136,20 @@ class GL:
         # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
-        print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
-        print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        #print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
+        #print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
         # Exemplo:
-        gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
+        #gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
+
+        # gets six by six the list to create each triangle
+        triangulo = []
+        for num in vertices:
+            triangulo.append(int(num))
+            if len(triangulo) == 6:
+
+                v1 = [triangulo[0],triangulo[1]]; v2 = [triangulo[2],triangulo[3]]; v3 = [triangulo[4],triangulo[5]]
+                linha1 = v1+v2; linha2 = v2+v3; linha3 = v3+v1
+                GL.polyline2D(linha1,colors);GL.polyline2D(linha2,colors);GL.polyline2D(linha3,colors)
 
     @staticmethod
     def triangleSet(point, colors):
