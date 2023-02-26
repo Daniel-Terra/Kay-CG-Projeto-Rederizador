@@ -141,6 +141,8 @@ class GL:
         # Exemplo:
         #gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
 
+        #eu não entendo pq ao testar pra hélice, o loop não ocorre, por algum motivo ele para, mas pra triangulos ele vai numa boa
+
         # gets six by six the list to create each triangle as a matrix
         xy = []
         triangulo = []
@@ -169,7 +171,9 @@ class GL:
                             linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
                             linha3 = (y3-y1)*x - (x3-x1)*y + y1*(x3-x1) - x1*(y3-y1)
 
+                            # check if the xy is negative or positive relative to the sides
                             if linha1 >= 0 and linha2 >= 0 and linha3 <= 0:
+                                # print it in the gpu graf
                                 GL.polypoint2D([x,y],colors)
 
     @staticmethod
