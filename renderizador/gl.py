@@ -148,11 +148,11 @@ class GL:
         triangulo = []
         for num in vertices:
             xy.append(int(num))
-            print(num)
             if len(xy) == 2:
                 triangulo.append(xy)
                 xy = []
                 if len(triangulo) == 3:
+                    print(triangulo)
 
                     # declaring the vertices of the triangle
                     x1, x2, x3 = triangulo[0][0], triangulo[1][0], triangulo[2][0]
@@ -169,12 +169,14 @@ class GL:
                             # to test if the value of each point is out or in the triangle
                             linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
                             linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
-                            linha3 = (y3-y1)*x - (x3-x1)*y + y1*(x3-x1) - x1*(y3-y1)
+                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
 
                             # check if the xy is negative or positive relative to the sides
-                            if linha1 >= 0 and linha2 >= 0 and linha3 <= 0:
+                            if linha1 >= 0 and linha2 >= 0 and linha3 >= 0:
                                 # print it in the gpu graf
                                 GL.polypoint2D([x,y],colors)
+
+                    triangulo = []
 
     @staticmethod
     def triangleSet(point, colors):
