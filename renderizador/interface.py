@@ -26,7 +26,7 @@ class Interface:
 
     last_time = 0      # para calculo de FPS
 
-    def __init__(self, width, height):
+    def __init__(self, width, height, filename):
         """Inicializa Interface Gráfica."""
         self.width = width
         self.height = height
@@ -36,7 +36,7 @@ class Interface:
 
         self.image_saver = None # recebe função para salvar imagens
 
-        self.fig, self.axes = plt.subplots(num="Renderizador")
+        self.fig, self.axes = plt.subplots(num="Renderizador - "+filename)
         self.fig.tight_layout(rect=(0, 0.05, 1, 0.98))
 
         self.axes.axis([0, width, height, 0])  # [xmin, xmax, ymin, ymax]
@@ -130,7 +130,7 @@ class Interface:
             self.fig.canvas.flush_events()
         elif label == 'Grid':
             self.grid = not self.grid
-            self.axes.grid(b=self.grid, which='both')
+            self.axes.grid(self.grid, which='both')
             self.fig.canvas.draw()
             self.fig.canvas.flush_events()
 

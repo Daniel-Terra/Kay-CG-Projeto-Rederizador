@@ -12,8 +12,9 @@ Data: <DATA DE INÍCIO DA IMPLEMENTAÇÃO>
 """
 
 import time         # Para operações com tempo
-
 import gpu          # Simula os recursos de uma GPU
+import math         # Funções matemáticas
+import numpy as np  # Biblioteca do Numpy
 
 class GL:
     """Classe que representa a biblioteca gráfica (Graphics Library)."""
@@ -42,21 +43,11 @@ class GL:
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polypoint2D
         # você pode assumir o desenho dos pontos com a cor emissiva (emissiveColor).
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        #print("Polypoint2D : pontos = {0}".format(point))  #imprime no terminal pontos
-        #print("Polypoint2D : colors = {0}".format(colors)) #imprime no terminal as cores
         # Exemplo:
-        #gpu.GPU.set_pixel(3, 1, 255, 0, 0) # altera um pixel da imagem (u, v, r, g, b)
+        pos_x = GL.width//2
+        pos_y = GL.height//2
+        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 0])  # altera pixel (u, v, tipo, r, g, b)
         # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
-
-        lista_rgb_float = colors['emissiveColor']
-        while len(point) > 1:
-            gpu.GPU.set_pixel(int(point[0]),int(point[1]), 
-                              int(255*lista_rgb_float[0]), 
-                              int(255*lista_rgb_float[1]), 
-                              int(255*lista_rgb_float[2]) )
-            del point[0]
-            del point[0]
-
     @staticmethod
     def polyline2D(lineSegments, colors):
         """Função usada para renderizar Polyline2D."""
@@ -70,61 +61,14 @@ class GL:
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
 
-        # gets four by four the list to create each line
-        linha = []
-        for num in lineSegments:
-            linha.append(int(num))
-            if len(linha) == 4:
-                
-                # where do we wanna get and the list of the points that will be written
-                target = [linha[2],linha[3]]
-                point  = [linha[0],linha[1]]
-                
-                print("point:", point, "target:",target)
-                
-                # iterative x and y
-                x = linha[0]
-                y = linha[1]
-
-                # declare the angular variation between the first point and the target
-                dx = abs(target[0]-point[0])
-                dy = abs(target[1]-point[1])
-
-                # sign for each axis variation
-                sign_dx = 1 if target[0] > point[0] else -1
-                sign_dy = 1 if target[1] > point[1] else -1
-
-                #lets beguin with the point adding
-                
-                #this line is horizontal
-                if dx>=dy:
-                    # the angular variation due dx
-                    a = dy/dx if dx != 0 else 0
-                    # for each add on x
-                    for i in range(dx+1):
-                        # set the pixel on gpu
-                        GL.polypoint2D([int(x),
-                                        int(y)],
-                                        colors)
-                        # move towards x
-                        x+=sign_dx
-                        # rise angular variation
-                        y+=sign_dy*a 
-
-                #vertical 
-                if dy>dx:
-                    # the angular variation due dy
-                    a = dx/dy if dy != 0 else 0
-                    # for each add on dy
-                    for i in range(dy+1):
-                        # set the pixel on gpu
-                        GL.polypoint2D([int(x),
-                                        int(y)],
-                                        colors)
-                        # move towards y
-                        x+=sign_dx*a
-                        # dash angular variation
-                        y+=sign_dy
+        print("Polyline2D : lineSegments = {0}".format(lineSegments)) # imprime no terminal
+        print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        
+        # Exemplo:
+        pos_x = GL.width//2
+        pos_y = GL.height//2
+        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 255])  # altera pixel (u, v, tipo, r, g, b)
+        # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
                         
     @staticmethod
     def triangleSet2D(vertices, colors):
@@ -136,47 +80,12 @@ class GL:
         # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
         # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
         # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
-        #print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
-        #print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
+        print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+
         # Exemplo:
-        #gpu.GPU.set_pixel(24, 8, 255, 255, 0) # altera um pixel da imagem (u, v, r, g, b)
+        gpu.GPU.draw_pixel([6, 8], gpu.GPU.RGB8, [255, 255, 0])  # altera pixel (u, v, tipo, r, g, b)
 
-        #eu não entendo pq ao testar pra hélice, o loop não ocorre, por algum motivo ele para, mas pra triangulos ele vai numa boa
-
-        # gets six by six the list to create each triangle as a matrix
-        xy = []
-        triangulo = []
-        for num in vertices:
-            xy.append(int(num))
-            if len(xy) == 2:
-                triangulo.append(xy)
-                xy = []
-                if len(triangulo) == 3:
-                    print(triangulo)
-
-                    # declaring the vertices of the triangle
-                    x1, x2, x3 = triangulo[0][0], triangulo[1][0], triangulo[2][0]
-                    y1, y2, y3 = triangulo[0][1], triangulo[1][1], triangulo[2][1]
-                    
-                    # using min and max of each x and y of the matrix, we discover the bounding box
-                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
-                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
-
-                    # to loop every single pixel inside the bounding box
-                    for y in range(ymin,ymax):
-                        for x in range(xmin,xmax):
-                            
-                            # to test if the value of each point is out or in the triangle
-                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
-                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
-                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
-
-                            # check if the xy is negative or positive relative to the sides
-                            if linha1 >= 0 and linha2 >= 0 and linha3 >= 0:
-                                # print it in the gpu graf
-                                GL.polypoint2D([x,y],colors)
-
-                    triangulo = []
 
     @staticmethod
     def triangleSet(point, colors):
@@ -189,15 +98,17 @@ class GL:
         # No TriangleSet os triângulos são informados individualmente, assim os três
         # primeiros pontos definem um triângulo, os três próximos pontos definem um novo
         # triângulo, e assim por diante.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
+        # O parâmetro colors é um dicionário com os tipos cores possíveis, você pode assumir
+        # inicialmente, para o TriangleSet, o desenho das linhas com a cor emissiva
+        # (emissiveColor), conforme implementar novos materias você deverá suportar outros
+        # tipos de cores.
 
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
         print("TriangleSet : pontos = {0}".format(point)) # imprime no terminal pontos
         print("TriangleSet : colors = {0}".format(colors)) # imprime no terminal as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixels([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
     def viewpoint(position, orientation, fieldOfView):
@@ -266,7 +177,7 @@ class GL:
         print("TriangleStripSet : colors = {0}".format(colors)) # imprime no terminal as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixels([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
     def indexedTriangleStripSet(point, index, colors):
@@ -288,7 +199,7 @@ class GL:
         print("IndexedTriangleStripSet : colors = {0}".format(colors)) # imprime as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixels([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
     def box(size, colors):
@@ -305,7 +216,7 @@ class GL:
         print("Box : colors = {0}".format(colors)) # imprime no terminal as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixels([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
     def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
@@ -346,7 +257,7 @@ class GL:
         print("IndexedFaceSet : colors = {0}".format(colors))  # imprime no terminal as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixels([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
     def sphere(radius, colors):
