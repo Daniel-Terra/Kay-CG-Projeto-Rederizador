@@ -6,15 +6,16 @@
 """
 Biblioteca Gráfica / Graphics Library.
 
-Desenvolvido por: <SEU NOME AQUI>
+Desenvolvido por: KAY
 Disciplina: Computação Gráfica
-Data: <DATA DE INÍCIO DA IMPLEMENTAÇÃO>
+Data: 16 de Fevereiro 2023
 """
 
 import time         # Para operações com tempo
 import gpu          # Simula os recursos de uma GPU
 import math         # Funções matemáticas
 import numpy as np  # Biblioteca do Numpy
+import lab3D
 
 class GL:
     """Classe que representa a biblioteca gráfica (Graphics Library)."""
@@ -26,7 +27,8 @@ class GL:
 
     @staticmethod
     def setup(width, height, near=0.01, far=1000):
-        """Definr parametros para câmera de razão de aspecto, plano próximo e distante."""
+        """Definir parametros para câmera de razão de aspecto, plano próximo e distante."""
+
         GL.width = width
         GL.height = height
         GL.near = near
@@ -35,80 +37,130 @@ class GL:
     @staticmethod
     def polypoint2D(point, colors):
         """Função usada para renderizar Polypoint2D."""
-        # Nessa função você receberá pontos no parâmetro point, esses pontos são uma lista
-        # de pontos x, y sempre na ordem. Assim point[0] é o valor da coordenada x do
-        # primeiro ponto, point[1] o valor y do primeiro ponto. Já point[2] é a
-        # coordenada x do segundo ponto e assim por diante. Assuma a quantidade de pontos
-        # pelo tamanho da lista e assuma que sempre vira uma quantidade par de valores.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polypoint2D
-        # você pode assumir o desenho dos pontos com a cor emissiva (emissiveColor).
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        # Exemplo:
-        pos_x = GL.width//2
-        pos_y = GL.height//2
-        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 0])  # altera pixel (u, v, tipo, r, g, b)
-        # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
+
+        colors = (np.array(colors['emissiveColor'])*255).tolist()
+        colors = [int(color) for color in colors]
+
+        for i in range(len(point)):
+            if (i%2) == 0:
+                x,y = int(point[i]),int(point[i+1])
+                gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+
     @staticmethod
     def polyline2D(lineSegments, colors):
         """Função usada para renderizar Polyline2D."""
-        # Nessa função você receberá os pontos de uma linha no parâmetro lineSegments, esses
-        # pontos são uma lista de pontos x, y sempre na ordem. Assim point[0] é o valor da
-        # coordenada x do primeiro ponto, point[1] o valor y do primeiro ponto. Já point[2] é
-        # a coordenada x do segundo ponto e assim por diante. Assuma a quantidade de pontos
-        # pelo tamanho da lista. A quantidade mínima de pontos são 2 (4 valores), porém a
-        # função pode receber mais pontos para desenhar vários segmentos. Assuma que sempre
-        # vira uma quantidade par de valores.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, para o Polyline2D
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
 
-        print("Polyline2D : lineSegments = {0}".format(lineSegments)) # imprime no terminal
-        print("Polyline2D : colors = {0}".format(colors)) # imprime no terminal as cores
-        
-        # Exemplo:
-        pos_x = GL.width//2
-        pos_y = GL.height//2
-        gpu.GPU.draw_pixel([pos_x, pos_y], gpu.GPU.RGB8, [255, 0, 255])  # altera pixel (u, v, tipo, r, g, b)
-        # cuidado com as cores, o X3D especifica de (0,1) e o Framebuffer de (0,255)
-                        
+        # gets four by four the list to create each line
+        linha = []
+        for num in lineSegments:
+            linha.append(int(num))
+            if len(linha) == 4:
+                
+                # where do we wanna get and the list of the points that will be written
+                target = [linha[2],linha[3]]
+                point  = [linha[0],linha[1]]
+                
+                # iterative x and y
+                x = linha[0]
+                y = linha[1]
+
+                # declare the angular variation between the first point and the target
+                dx = abs(target[0]-point[0])
+                dy = abs(target[1]-point[1])
+
+                # sign for each axis variation
+                sign_dx = 1 if target[0] > point[0] else -1
+                sign_dy = 1 if target[1] > point[1] else -1
+
+                #lets beguin with the point adding
+                
+                #this line is horizontal
+                if dx>=dy:
+                    # the angular variation due dx
+                    a = dy/dx if dx != 0 else 0
+                    # for each add on x
+                    for i in range(dx+1):
+                        # set the pixel on gpu
+                        GL.polypoint2D([int(x),
+                                        int(y)],
+                                        colors)
+                        # move towards x
+                        x+=sign_dx
+                        # rise angular variation
+                        y+=sign_dy*a 
+
+                #vertical 
+                if dy>dx:
+                    # the angular variation due dy
+                    a = dx/dy if dy != 0 else 0
+                    # for each add on dy
+                    for i in range(dy+1):
+                        # set the pixel on gpu
+                        GL.polypoint2D([int(x),
+                                        int(y)],
+                                        colors)
+                        # move towards y
+                        x+=sign_dx*a
+                        # dash angular variation
+                        y+=sign_dy
+    
     @staticmethod
     def triangleSet2D(vertices, colors):
         """Função usada para renderizar TriangleSet2D."""
-        # Nessa função você receberá os vertices de um triângulo no parâmetro vertices,
-        # esses pontos são uma lista de pontos x, y sempre na ordem. Assim point[0] é o
-        # valor da coordenada x do primeiro ponto, point[1] o valor y do primeiro ponto.
-        # Já point[2] é a coordenada x do segundo ponto e assim por diante. Assuma que a
-        # quantidade de pontos é sempre multiplo de 3, ou seja, 6 valores ou 12 valores, etc.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, para o TriangleSet2D
-        # você pode assumir o desenho das linhas com a cor emissiva (emissiveColor).
-        print("TriangleSet2D : vertices = {0}".format(vertices)) # imprime no terminal
-        print("TriangleSet2D : colors = {0}".format(colors)) # imprime no terminal as cores
+        
+        # gets six by six the list to create each triangle as a matrix
+        xy = []
+        triangulo = []
+        for num in vertices:
+            xy.append(int(num))
+            if len(xy) == 2:
+                triangulo.append(xy)
+                xy = []
+                if len(triangulo) == 3:
 
-        # Exemplo:
-        gpu.GPU.draw_pixel([6, 8], gpu.GPU.RGB8, [255, 255, 0])  # altera pixel (u, v, tipo, r, g, b)
+                    # declaring the vertices of the triangle
+                    x1, x2, x3 = triangulo[0][0], triangulo[1][0], triangulo[2][0]
+                    y1, y2, y3 = triangulo[0][1], triangulo[1][1], triangulo[2][1]
+                    
+                    # using min and max of each x and y of the matrix, we discover the bounding box
+                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
+                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
 
+                    # to loop every single pixel inside the bounding box
+                    for y in range(ymin,ymax):
+                        for x in range(xmin,xmax):
+                            
+                            # to test if the value of each point is out or in the triangle
+                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
+
+                            # check if the xy is negative or positive relative to the sides
+                            if linha1 >= 0 and linha2 >= 0 and linha3 >= 0:
+                                # print it in the gpu graf
+                                GL.polypoint2D([x,y],colors)
+
+                    triangulo = []
 
     @staticmethod
     def triangleSet(point, colors):
         """Função usada para renderizar TriangleSet."""
-        # Nessa função você receberá pontos no parâmetro point, esses pontos são uma lista
-        # de pontos x, y, e z sempre na ordem. Assim point[0] é o valor da coordenada x do
-        # primeiro ponto, point[1] o valor y do primeiro ponto, point[2] o valor z da
-        # coordenada z do primeiro ponto. Já point[3] é a coordenada x do segundo ponto e
-        # assim por diante.
-        # No TriangleSet os triângulos são informados individualmente, assim os três
-        # primeiros pontos definem um triângulo, os três próximos pontos definem um novo
-        # triângulo, e assim por diante.
-        # O parâmetro colors é um dicionário com os tipos cores possíveis, você pode assumir
-        # inicialmente, para o TriangleSet, o desenho das linhas com a cor emissiva
-        # (emissiveColor), conforme implementar novos materias você deverá suportar outros
-        # tipos de cores.
+        '''
+        colors = (np.array(colors['emissiveColor'])*255).tolist()
+        colors = [int(color) for color in colors]
+
+        for i in range(len(point)):
+            if (i%2) == 0:
+                x,y = int(point[i]),int(point[i+1])
+                gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+        
 
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
         print("TriangleSet : pontos = {0}".format(point)) # imprime no terminal pontos
         print("TriangleSet : colors = {0}".format(colors)) # imprime no terminal as cores
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel'''
 
     @staticmethod
     def viewpoint(position, orientation, fieldOfView):
@@ -117,12 +169,45 @@ class GL:
         # câmera virtual. Use esses dados para poder calcular e criar a matriz de projeção
         # perspectiva para poder aplicar nos pontos dos objetos geométricos.
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Viewpoint : ", end='')
-        print("position = {0} ".format(position), end='')
-        print("orientation = {0} ".format(orientation), end='')
-        print("fieldOfView = {0} ".format(fieldOfView))
+        screen_matrix = np.diag([GL.width/2,-GL.height/2,1,1])
+        screen_matrix[3] = [GL.width/2,GL.height/2,0,1]
+        screen_matrix = screen_matrix.transpose()
 
+        persp_matrix = np.identity(4)
+        fieldOfView = lab3D.Tfovy(fieldOfView,GL.width,GL.height)
+        persp_matrix[0][0] = GL.height/fieldOfView/GL.width
+        persp_matrix[1][1] = 1/fieldOfView
+        persp_matrix[2][2] = -(GL.far+GL.near)/(GL.far-GL.near)
+        persp_matrix[2][3] = -2*GL.far*GL.near/(GL.far-GL.near)
+        persp_matrix[3][2] = -1
+        persp_matrix[3][3] = 0
+
+        try: position 
+        except: position = np.full(3,0)
+        position = (np.array(position)*(1)).tolist()
+        position_matrix = np.identity(4)
+        position_matrix[3] = position + [1]
+        position_matrix = position_matrix.transpose()
+
+        try: orientation
+        except: orientation = np.full(4,0)
+        orientation[3] = -orientation[3]
+        orientation_matrix = lab3D.Rotate3D(orientation)
+
+        lookat_matrix = np.identity(4)
+        lookat_matrix = np.matmul(lookat_matrix,position_matrix)
+        lookat_matrix = np.matmul(lookat_matrix,orientation_matrix)
+
+        view_matrix = np.identity(4)
+        view_matrix = np.matmul(view_matrix,screen_matrix)
+        view_matrix = np.matmul(view_matrix,persp_matrix)
+        view_matrix = np.matmul(view_matrix,lookat_matrix)
+
+        print("\n View: \n{0}".format(view_matrix), end="\n")
+
+        global VIEW
+        VIEW = view_matrix
+        
     @staticmethod
     def transform_in(translation, scale, rotation):
         """Função usada para renderizar (na verdade coletar os dados) de Transform."""
@@ -134,16 +219,31 @@ class GL:
         # Quando se entrar em um nó transform se deverá salvar a matriz de transformação dos
         # modelos do mundo em alguma estrutura de pilha.
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Transform : ", end='')
-        if translation:
-            print("translation = {0} ".format(translation), end='') # imprime no terminal
-        if scale:
-            print("scale = {0} ".format(scale), end='') # imprime no terminal
-        if rotation:
-            print("rotation = {0} ".format(rotation), end='') # imprime no terminal
-        print("")
+        try: scale 
+        except: scale = np.full(3,1)
+        scale_matrix = np.identity(4)
+        for i in range(3): scale_matrix[i][i] = scale[i]
 
+        try: translation 
+        except: translation = np.full(3,0)
+        translation_matrix = np.identity(4)
+        translation_matrix[3] = translation + [1]
+        translation_matrix = translation_matrix.transpose()
+
+        try: rotation 
+        except: rotation = np.full(4,0)
+        rotation_matrix = lab3D.Rotate3D(rotation)
+
+        model_matrix = np.identity(4)
+        model_matrix = np.matmul(model_matrix,scale_matrix)
+        model_matrix = np.matmul(model_matrix,translation_matrix)
+        model_matrix = np.matmul(model_matrix,rotation_matrix)
+
+        print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
+
+        global MODEL
+        MODEL = model_matrix
+        
     @staticmethod
     def transform_out():
         """Função usada para renderizar (na verdade coletar os dados) de Transform."""
@@ -152,8 +252,10 @@ class GL:
         # deverá recuperar a matriz de transformação dos modelos do mundo da estrutura de
         # pilha implementada.
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Saindo de Transform")
+        print(VIEW)
+        print(MODEL)
+
+        #print("\n Transform OUT: \n{0}".format(" - "), end="\n")
 
     @staticmethod
     def triangleStripSet(point, stripCount, colors):
@@ -282,7 +384,7 @@ class GL:
         # ambientIntensity = 0,0 e direção = (0 0 −1).
 
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("NavigationInfo : headlight = {0}".format(headlight)) # imprime no terminal
+        #print("NavigationInfo : headlight = {0}".format(headlight)) # imprime no terminal
 
     @staticmethod
     def directionalLight(ambientIntensity, color, intensity, direction):
