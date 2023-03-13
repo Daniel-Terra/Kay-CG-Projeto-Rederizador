@@ -25,6 +25,10 @@ class GL:
     near = 0.01   # plano de corte próximo
     far = 1000    # plano de corte distante
 
+    #Transforming Matrixes
+    model_matrix = np.identity(4)
+    view_matrix = np.identity(4)
+
     @staticmethod
     def setup(width, height, near=0.01, far=1000):
         """Definir parametros para câmera de razão de aspecto, plano próximo e distante."""
@@ -144,30 +148,32 @@ class GL:
 
     @staticmethod
     def triangleSet(point, colors):
-        """Função usada para renderizar TriangleSet."""
-        '''
-        colors = (np.array(colors['emissiveColor'])*255).tolist()
-        colors = [int(color) for color in colors]
+        """Função usada para renderizar TriangleSet."""        
 
-        for i in range(len(point)):
-            if (i%2) == 0:
-                x,y = int(point[i]),int(point[i+1])
-                gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+        point_matrix = np.array([point[i:i + 3] + [1] for i in range(0, len(point), 3)]).transpose()
+
+        print("\n Pontos: \n{0}".format(point_matrix), end="\n")
+
+        render_matrix = np.identity(4)
+        render_matrix = np.matmul(render_matrix,GL.view_matrix)
+        render_matrix = np.matmul(render_matrix,GL.model_matrix)
+        render_matrix = np.matmul(render_matrix,point_matrix)
+
+        for i in range(render_matrix.shape[1]):
+            render_matrix[0][i] /= render_matrix[3][i]
+            render_matrix[1][i] /= render_matrix[3][i]
+            render_matrix[2][i] /= render_matrix[3][i]
+            render_matrix[3][i] /= render_matrix[3][i]
+
+        vertices = np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
+                                   for i in range(render_matrix.shape[1])],axis=0).tolist()
         
-
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("TriangleSet : pontos = {0}".format(point)) # imprime no terminal pontos
-        print("TriangleSet : colors = {0}".format(colors)) # imprime no terminal as cores
-
-        # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel'''
+        print("\n Render: \n{0}".format(vertices), end="\n")
+        GL.triangleSet2D(vertices, colors)
 
     @staticmethod
     def viewpoint(position, orientation, fieldOfView):
         """Função usada para renderizar (na verdade coletar os dados) de Viewpoint."""
-        # Na função de viewpoint você receberá a posição, orientação e campo de visão da
-        # câmera virtual. Use esses dados para poder calcular e criar a matriz de projeção
-        # perspectiva para poder aplicar nos pontos dos objetos geométricos.
 
         screen_matrix = np.diag([GL.width/2,-GL.height/2,1,1])
         screen_matrix[3] = [GL.width/2,GL.height/2,0,1]
@@ -204,20 +210,11 @@ class GL:
         view_matrix = np.matmul(view_matrix,lookat_matrix)
 
         print("\n View: \n{0}".format(view_matrix), end="\n")
+        GL.view_matrix = view_matrix
 
-        global VIEW
-        VIEW = view_matrix
-        
     @staticmethod
     def transform_in(translation, scale, rotation):
         """Função usada para renderizar (na verdade coletar os dados) de Transform."""
-        # A função transform_in será chamada quando se entrar em um nó X3D do tipo Transform
-        # do grafo de cena. Os valores passados são a escala em um vetor [x, y, z]
-        # indicando a escala em cada direção, a translação [x, y, z] nas respectivas
-        # coordenadas e finalmente a rotação por [x, y, z, t] sendo definida pela rotação
-        # do objeto ao redor do eixo x, y, z por t radianos, seguindo a regra da mão direita.
-        # Quando se entrar em um nó transform se deverá salvar a matriz de transformação dos
-        # modelos do mundo em alguma estrutura de pilha.
 
         try: scale 
         except: scale = np.full(3,1)
@@ -240,9 +237,7 @@ class GL:
         model_matrix = np.matmul(model_matrix,rotation_matrix)
 
         print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
-
-        global MODEL
-        MODEL = model_matrix
+        GL.model_matrix = model_matrix
         
     @staticmethod
     def transform_out():
@@ -251,9 +246,6 @@ class GL:
         # grafo de cena. Não são passados valores, porém quando se sai de um nó transform se
         # deverá recuperar a matriz de transformação dos modelos do mundo da estrutura de
         # pilha implementada.
-
-        print(VIEW)
-        print(MODEL)
 
         #print("\n Transform OUT: \n{0}".format(" - "), end="\n")
 
