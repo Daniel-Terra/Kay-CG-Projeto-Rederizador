@@ -72,7 +72,7 @@ if len(sys.argv) > 1:
     if len(sys.argv) > 1:
         outra_opcoes = sys.argv[2:]
 else:
-    escolha = str(8)#input("Escolha o exemplo: ")
+    escolha = str(13)#input("Escolha o exemplo: ")
 
 # Verifica se a escolha do exemplo foi pelo índice ou primeiro argumento da lista
 if escolha.isnumeric():

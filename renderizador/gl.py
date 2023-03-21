@@ -48,7 +48,8 @@ class GL:
         for i in range(len(point)):
             if (i%2) == 0:
                 x,y = int(point[i]),int(point[i+1])
-                gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+                if (x >= 0 and x < GL.width) and (y >= 0 and y < GL.height):
+                    gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
 
     @staticmethod
     def polyline2D(lineSegments, colors):
@@ -136,8 +137,16 @@ class GL:
                             
                             # to test if the value of each point is out or in the triangle
                             linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                            if linha1 < 0:
+                                continue
+                            
                             linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                            if linha2 < 0:
+                                continue
+
                             linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
+                            if linha3 < 0:
+                                continue
 
                             # check if the xy is negative or positive relative to the sides
                             if linha1 >= 0 and linha2 >= 0 and linha3 >= 0:
@@ -148,7 +157,7 @@ class GL:
 
     @staticmethod
     def triangleSet(point, colors):
-        """Função usada para renderizar TriangleSet."""        
+        """Function to render the triangles called"""        
 
         point_matrix = np.array([point[i:i + 3] + [1] for i in range(0, len(point), 3)]).transpose()
 
@@ -173,7 +182,7 @@ class GL:
 
     @staticmethod
     def viewpoint(position, orientation, fieldOfView):
-        """Função usada para renderizar (na verdade coletar os dados) de Viewpoint."""
+        """Function for the virtual camera"""
 
         screen_matrix = np.diag([GL.width/2,-GL.height/2,1,1])
         screen_matrix[3] = [GL.width/2,GL.height/2,0,1]
@@ -190,31 +199,30 @@ class GL:
 
         try: position 
         except: position = np.full(3,0)
-        position = (np.array(position)*(1)).tolist()
+        position = (np.array(position)*(-1)).tolist()
         position_matrix = np.identity(4)
         position_matrix[3] = position + [1]
         position_matrix = position_matrix.transpose()
 
         try: orientation
         except: orientation = np.full(4,0)
-        orientation[3] = -orientation[3]
-        orientation_matrix = lab3D.Rotate3D(orientation)
+        orientation_matrix = lab3D.Rotate3D(orientation).transpose()
 
         lookat_matrix = np.identity(4)
-        lookat_matrix = np.matmul(lookat_matrix,position_matrix)
-        lookat_matrix = np.matmul(lookat_matrix,orientation_matrix)
+        lookat_matrix = np.matmul(position_matrix,lookat_matrix)
+        lookat_matrix = np.matmul(orientation_matrix,lookat_matrix)
 
         view_matrix = np.identity(4)
-        view_matrix = np.matmul(view_matrix,screen_matrix)
-        view_matrix = np.matmul(view_matrix,persp_matrix)
-        view_matrix = np.matmul(view_matrix,lookat_matrix)
+        view_matrix = np.matmul(lookat_matrix,view_matrix)
+        view_matrix = np.matmul(persp_matrix,view_matrix)
+        view_matrix = np.matmul(screen_matrix,view_matrix)
 
         print("\n View: \n{0}".format(view_matrix), end="\n")
         GL.view_matrix = view_matrix
 
     @staticmethod
     def transform_in(translation, scale, rotation):
-        """Função usada para renderizar (na verdade coletar os dados) de Transform."""
+        """Function to manage inputed transformations"""
 
         try: scale 
         except: scale = np.full(3,1)
@@ -232,9 +240,9 @@ class GL:
         rotation_matrix = lab3D.Rotate3D(rotation)
 
         model_matrix = np.identity(4)
-        model_matrix = np.matmul(model_matrix,scale_matrix)
-        model_matrix = np.matmul(model_matrix,translation_matrix)
-        model_matrix = np.matmul(model_matrix,rotation_matrix)
+        model_matrix = np.matmul(scale_matrix,model_matrix)
+        model_matrix = np.matmul(rotation_matrix,model_matrix)
+        model_matrix = np.matmul(translation_matrix,model_matrix)
 
         print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
         GL.model_matrix = model_matrix
