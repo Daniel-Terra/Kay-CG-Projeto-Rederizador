@@ -57,8 +57,10 @@ class GL:
 
         line = list(map(int, lineSegments))
         for i in range(len(line)//2-1):
-            point  = [line[i],line[i+1]]
-            target = [line[i+2],line[i+3]]
+            i *= 2
+            
+            point  = [line[i],line[i+1]]; print('ponto',point)
+            target = [line[i+2],line[i+3]]; print('alvo',target)
 
             # iterative x and y
             x = line[i]
@@ -66,7 +68,7 @@ class GL:
 
             # declare the angular variation between the first point and the target
             dx = abs(target[0]-point[0])
-            dy = abs(target[1]-point[1]);print(dx,dy)
+            dy = abs(target[1]-point[1])
 
             # sign for each axis variation
             sign_dx = 1 if target[0] > point[0] else -1
@@ -103,8 +105,6 @@ class GL:
                     x+=sign_dx*a
                     # dash angular variation
                     y+=sign_dy
-            
-            i *= 2
     
     @staticmethod
     def triangleSet2D(vertices, colors):
