@@ -55,59 +55,56 @@ class GL:
     def polyline2D(lineSegments, colors):
         """Função usada para renderizar Polyline2D."""
 
-        # gets four by four the list to create each line
-        linha = []
-        for num in lineSegments:
-            linha.append(int(num))
-            if len(linha) == 4:
-                
-                # where do we wanna get and the list of the points that will be written
-                target = [linha[2],linha[3]]
-                point  = [linha[0],linha[1]]
-                
-                # iterative x and y
-                x = linha[0]
-                y = linha[1]
+        line = list(map(int, lineSegments))
+        for i in range(len(line)//2-1):
+            point  = [line[i],line[i+1]]
+            target = [line[i+2],line[i+3]]
 
-                # declare the angular variation between the first point and the target
-                dx = abs(target[0]-point[0])
-                dy = abs(target[1]-point[1])
+            # iterative x and y
+            x = line[i]
+            y = line[i+1]
 
-                # sign for each axis variation
-                sign_dx = 1 if target[0] > point[0] else -1
-                sign_dy = 1 if target[1] > point[1] else -1
+            # declare the angular variation between the first point and the target
+            dx = abs(target[0]-point[0])
+            dy = abs(target[1]-point[1]);print(dx,dy)
 
-                #lets beguin with the point adding
-                
-                #this line is horizontal
-                if dx>=dy:
-                    # the angular variation due dx
-                    a = dy/dx if dx != 0 else 0
-                    # for each add on x
-                    for i in range(dx+1):
-                        # set the pixel on gpu
-                        GL.polypoint2D([int(x),
-                                        int(y)],
-                                        colors)
-                        # move towards x
-                        x+=sign_dx
-                        # rise angular variation
-                        y+=sign_dy*a 
+            # sign for each axis variation
+            sign_dx = 1 if target[0] > point[0] else -1
+            sign_dy = 1 if target[1] > point[1] else -1
 
-                #vertical 
-                if dy>dx:
-                    # the angular variation due dy
-                    a = dx/dy if dy != 0 else 0
-                    # for each add on dy
-                    for i in range(dy+1):
-                        # set the pixel on gpu
-                        GL.polypoint2D([int(x),
-                                        int(y)],
-                                        colors)
-                        # move towards y
-                        x+=sign_dx*a
-                        # dash angular variation
-                        y+=sign_dy
+            #lets beguin with the point adding
+            
+            #this line is horizontal
+            if dx>=dy:
+                # the angular variation due dx
+                a = dy/dx if dx != 0 else 0
+                # for each add on x
+                for i in range(dx+1):
+                    # set the pixel on gpu
+                    GL.polypoint2D([int(x),
+                                    int(y)],
+                                    colors)
+                    # move towards x
+                    x+=sign_dx
+                    # rise angular variation
+                    y+=sign_dy*a 
+
+            #vertical 
+            if dy>dx:
+                # the angular variation due dy
+                a = dx/dy if dy != 0 else 0
+                # for each add on dy
+                for i in range(dy+1):
+                    # set the pixel on gpu
+                    GL.polypoint2D([int(x),
+                                    int(y)],
+                                    colors)
+                    # move towards y
+                    x+=sign_dx*a
+                    # dash angular variation
+                    y+=sign_dy
+            
+            i *= 2
     
     @staticmethod
     def triangleSet2D(vertices, colors):
@@ -161,7 +158,7 @@ class GL:
 
         point_matrix = np.array([point[i:i + 3] + [1] for i in range(0, len(point), 3)]).transpose()
 
-        print("\n Pontos: \n{0}".format(point_matrix), end="\n")
+        #print("\n Pontos: \n{0}".format(point_matrix), end="\n")
 
         render_matrix = np.identity(4)
         render_matrix = np.matmul(render_matrix,GL.view_matrix)
@@ -177,7 +174,7 @@ class GL:
         vertices = np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
                                    for i in range(render_matrix.shape[1])],axis=0).tolist()
         
-        print("\n Render: \n{0}".format(vertices), end="\n")
+        #print("\n Render: \n{0}".format(vertices), end="\n")
         GL.triangleSet2D(vertices, colors)
 
     @staticmethod
@@ -217,7 +214,7 @@ class GL:
         view_matrix = np.matmul(persp_matrix,view_matrix)
         view_matrix = np.matmul(screen_matrix,view_matrix)
 
-        print("\n View: \n{0}".format(view_matrix), end="\n")
+        #print("\n View: \n{0}".format(view_matrix), end="\n")
         GL.view_matrix = view_matrix
 
     @staticmethod
@@ -244,7 +241,7 @@ class GL:
         model_matrix = np.matmul(rotation_matrix,model_matrix)
         model_matrix = np.matmul(translation_matrix,model_matrix)
 
-        print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
+        #print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
         GL.model_matrix = model_matrix
         
     @staticmethod
