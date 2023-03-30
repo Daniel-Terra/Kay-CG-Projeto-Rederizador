@@ -38,22 +38,32 @@ TESTE.append(["tira_tri", "-i", DIR+"3D/triangulos/tiratrig.x3d", "-w", "300", "
 TESTE.append(["letras", "-i", DIR+"3D/cores/letras.x3d", "-w", "300", "-h", "200", "-p"])
 TESTE.append(["avatar", "-i", DIR+"3D/avatar/avatar.x3d", "-w", "300", "-h", "200", "-p"])
 
-# Interpolações e Texturas
+# Z-buffer e Transparência
+TESTE.append(["retang", "-i", DIR+"3D/retangulos/retangulos.x3d", "-w", "300", "-h", "200", "-p"])
+TESTE.append(["transp", "-i", DIR+"3D/transparencia/transparencia.x3d", "-w", "300", "-h", "200", "-p"])
+
+# Interpolações de Cores
 TESTE.append(["cores", "-i", DIR+"3D/cores/cores.x3d", "-w", "300", "-h", "200", "-p"])
+
+# Texturas
 TESTE.append(["textura", "-i", DIR+"3D/texturas/textura.x3d", "-w", "300", "-h", "200", "-p"])
 TESTE.append(["texturas", "-i", DIR+"3D/texturas/texturas.x3d", "-w", "300", "-h", "200", "-p"])
 
-# Z-buffer
-TESTE.append(["retang", "-i", DIR+"3D/retangulos/retangulos.x3d", "-w", "300", "-h", "200", "-p"])
+# Primitivas 3D
+TESTE.append(["primitivas", "-i", DIR+"3D/box/primitivas.x3d", "-w", "300", "-h", "200", "-p"])
 
 # Iluminação
 TESTE.append(["tri_3D", "-i", DIR+"3D/triangulos/triang3d.x3d", "-w", "300", "-h", "200", "-p"])
-TESTE.append(["um_box", "-i", DIR+"3D/box/box.x3d", "-w", "300", "-h", "200", "-p"])
+TESTE.append(["caixas", "-i", DIR+"3D/box/box.x3d", "-w", "300", "-h", "200", "-p"])
 TESTE.append(["esferas", "-i", DIR+"3D/iluminacao/esferas.x3d", "-w", "180", "-h", "120", "-p"])
 
 # Animações
 TESTE.append(["onda", "-i", DIR+"3D/animacoes/onda.x3d", "-w", "300", "-h", "200"])
 TESTE.append(["piramide", "-i", DIR+"3D/animacoes/piramide.x3d", "-w", "300", "-h", "200"])
+
+# Novos
+TESTE.append(["leques", "-i", DIR+"3D/cores/leques.x3d", "-w", "480", "-h", "320", "-p"])
+TESTE.append(["flechas", "-i", DIR+"3D/cores/flechas.x3d", "-w", "480", "-h", "320", "-p"])
 
 # Lista os exemplos registrados (em 3 colunas)
 colunas = 4

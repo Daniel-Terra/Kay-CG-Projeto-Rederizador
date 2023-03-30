@@ -18,6 +18,7 @@ import interface    # Janela de visualização baseada no Matplotlib
 import gpu          # Simula os recursos de uma GPU
 
 import x3d          # Faz a leitura do arquivo X3D, gera o grafo de cena e faz traversal
+import scenegraph   # Imprime o grafo de cena no console
 
 LARGURA = 60  # Valor padrão para largura da tela
 ALTURA = 40   # Valor padrão para altura da tela
@@ -53,6 +54,8 @@ class Renderizador:
         # - FRAMEBUFFER: Faz o bind para leitura e escrita no framebuffer
 
         # Aloca memória no FrameBuffer para um tipo e tamanho especificado de buffer
+
+        # Memória de Framebuffer para canal de cores
         gpu.GPU.framebuffer_storage(
             self.framebuffers["FRONT"],
             gpu.GPU.COLOR_ATTACHMENT,
@@ -60,6 +63,16 @@ class Renderizador:
             self.width,
             self.height
         )
+
+        # Descomente as seguintes linhas se for usar um Framebuffer para profundidade
+        # gpu.GPU.framebuffer_storage(
+        #     self.framebuffers["FRONT"],
+        #     gpu.GPU.DEPTH_ATTACHMENT,
+        #     gpu.GPU.DEPTH_COMPONENT32F,
+        #     self.width,
+        #     self.height
+        # )
+    
         # Opções:
         # - COLOR_ATTACHMENT: alocações para as cores da imagem renderizada
         # - DEPTH_ATTACHMENT: alocações para as profundidades da imagem renderizada
@@ -111,8 +124,8 @@ class Renderizador:
         x3d.X3D.renderer["Transform_out"] = gl.GL.transform_out
         x3d.X3D.renderer["TriangleStripSet"] = gl.GL.triangleStripSet
         x3d.X3D.renderer["IndexedTriangleStripSet"] = gl.GL.indexedTriangleStripSet
-        x3d.X3D.renderer["Box"] = gl.GL.box
         x3d.X3D.renderer["IndexedFaceSet"] = gl.GL.indexedFaceSet
+        x3d.X3D.renderer["Box"] = gl.GL.box
         x3d.X3D.renderer["Sphere"] = gl.GL.sphere
         x3d.X3D.renderer["NavigationInfo"] = gl.GL.navigationInfo
         x3d.X3D.renderer["DirectionalLight"] = gl.GL.directionalLight
@@ -137,6 +150,7 @@ class Renderizador:
         parser.add_argument("-o", "--output", help="arquivo 2D de saída (imagem)")
         parser.add_argument("-w", "--width", help="resolução horizonta", type=int)
         parser.add_argument("-h", "--height", help="resolução vertical", type=int)
+        parser.add_argument("-g", "--graph", help="imprime o grafo de cena", action='store_true')
         parser.add_argument("-p", "--pause", help="começa simulação em pausa", action='store_true')
         parser.add_argument("-q", "--quiet", help="não exibe janela", action='store_true')
         args = parser.parse_args() # parse the arguments
@@ -176,6 +190,8 @@ class Renderizador:
         # carrega os dados do grafo de cena
         if self.scene:
             self.scene.parse()
+            if args.graph:
+                scenegraph.Graph(self.scene.root)
 
         # Configura o sistema para a renderização.
         self.setup()
