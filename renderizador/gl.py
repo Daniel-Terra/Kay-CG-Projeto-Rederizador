@@ -292,6 +292,8 @@ class GL:
         #    print("\t Dimensões da image = {0}".format(image.shape))
 
         GL.indexedTriangleStripSet(coord,coordIndex,colors)
+        print("Professor eu n tenho ideia de como eu vou implementar as funções de cor se o triangleset não me permite usar indice")
+        print(" Area = abs(x0(y1-y2)+x1(y2-y1)+x2(y0-y1))/2 ")
 
     """ PRIMITIVES """
 
@@ -311,7 +313,6 @@ class GL:
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
         gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
-
     @staticmethod
     def sphere(radius, colors):
         """Função usada para renderizar Esferas."""
@@ -456,7 +457,7 @@ class GL:
         return value_changed
 
     """ FUTURE """
-    
+
     def vertex_shader(self, shader):
         """Para no futuro implementar um vertex shader."""
 
