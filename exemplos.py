@@ -18,7 +18,7 @@ TESTE = []
 
 # Exemplos 2D
 # Rasterização
-TESTE.append(["pontos", "-i", DIR+"2D/pontos/pontos.x3d", "-w", "30", "-h", "20", "-p"])
+#TESTE.append(["pontos", "-i", DIR+"2D/pontos/pontos.x3d", "-w", "30", "-h", "20", "-p"])
 TESTE.append(["linhas", "-i", DIR+"2D/linhas/linhas.x3d", "-w", "30", "-h", "20", "-p"])
 TESTE.append(["octogono", "-i", DIR+"2D/linhas/octogono.x3d", "-w", "30", "-h", "20", "-p"])
 TESTE.append(["linhas_fora", "-i", DIR+"2D/linhas/linhas_fora.x3d", "-w", "30", "-h", "20", "-p"])
@@ -82,7 +82,7 @@ if len(sys.argv) > 1:
     if len(sys.argv) > 1:
         outra_opcoes = sys.argv[2:]
 else:
-    #escolha = str(13)
+    #escolha = str(16)
     escolha = input("Escolha o exemplo: ")
 
 # Verifica se a escolha do exemplo foi pelo índice ou primeiro argumento da lista

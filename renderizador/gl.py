@@ -29,31 +29,32 @@ class GL:
     view_matrix = np.identity(4)
     stack = [np.identity(4)]
 
-    @staticmethod
+    @staticmethod # Used to setup the environment
     def setup(width, height, near=0.01, far=1000):
-        """Definir parametros para câmera de razão de aspecto, plano próximo e distante."""
 
         GL.width = width
         GL.height = height
         GL.near = near
         GL.far = far
 
-    @staticmethod
+    @staticmethod # Used to create a 2D Pixel on screen
     def polypoint2D(point, colors):
-        """Função usada para renderizar Polypoint2D."""
 
         colors = (np.array(colors['emissiveColor'])*255).tolist()
         colors = [int(color) for color in colors]
 
-        for i in range(len(point)):
-            if (i%2) == 0:
-                x,y = int(point[i]),int(point[i+1])
-                if (x >= 0 and x < GL.width) and (y >= 0 and y < GL.height):
-                    gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+        for i in range(len(point)//2):
+            i *= 2
 
-    @staticmethod
+            x,y = int(point[i]),int(point[i+1])
+
+            if (x < 0 or x >= GL.width) or (y < 0 or y >= GL.height):
+                continue               
+            
+            gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+
+    @staticmethod # Used to create a 2D Line on screen
     def polyline2D(lineSegments, colors):
-        """Função usada para renderizar Polyline2D."""
 
         line = list(map(int, lineSegments))
         for i in range(len(line)//2-1):
@@ -106,55 +107,37 @@ class GL:
                     # dash angular variation
                     y+=sign_dy
     
-    @staticmethod
+    @staticmethod # Used to create a 2D Triangle on screen
     def triangleSet2D(vertices, colors):
-        """Função usada para renderizar TriangleSet2D."""
-        
-        # gets six by six the list to create each triangle as a matrix
-        xy = []
-        triangulo = []
-        for num in vertices:
-            xy.append(int(num))
-            if len(xy) == 2:
-                triangulo.append(xy)
-                xy = []
-                if len(triangulo) == 3:
 
-                    # declaring the vertices of the triangle
-                    x1, x2, x3 = triangulo[0][0], triangulo[1][0], triangulo[2][0]
-                    y1, y2, y3 = triangulo[0][1], triangulo[1][1], triangulo[2][1]
+        for i in range(len(vertices)//6):
+            i *= 6
+
+            x1, x2, x3 = int(vertices[i+0]), int(vertices[i+2]), int(vertices[i+4])
+            y1, y2, y3 = int(vertices[i+1]), int(vertices[i+3]), int(vertices[i+5])
+
+            xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
+            xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+
+            for y in range(ymin,ymax):
+                for x in range(xmin,xmax):
                     
-                    # using min and max of each x and y of the matrix, we discover the bounding box
-                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
-                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+                    linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                    if linha1 < 0:
+                        continue
+                    
+                    linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                    if linha2 < 0:
+                        continue
 
-                    # to loop every single pixel inside the bounding box
-                    for y in range(ymin,ymax):
-                        for x in range(xmin,xmax):
-                            
-                            # to test if the value of each point is out or in the triangle
-                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
-                            if linha1 < 0:
-                                continue
-                            
-                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
-                            if linha2 < 0:
-                                continue
+                    linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
+                    if linha3 < 0:
+                        continue
 
-                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
-                            if linha3 < 0:
-                                continue
+                    GL.polypoint2D([x,y],colors)
 
-                            # check if the xy is negative or positive relative to the sides
-                            if linha1 >= 0 and linha2 >= 0 and linha3 >= 0:
-                                # print it in the gpu graf
-                                GL.polypoint2D([x,y],colors)
-
-                    triangulo = []
-
-    @staticmethod
+    @staticmethod # Used to create a 3D Triangle on screen
     def triangleSet(point, colors):
-        """Function to render the triangles called"""
 
         point_matrix = np.array([point[i:i + 3] + [1] for i in range(0, len(point), 3)]).transpose()
 
@@ -177,9 +160,8 @@ class GL:
         #print("\n Render: \n{0}".format(vertices), end="\n")
         GL.triangleSet2D(vertices, colors)
 
-    @staticmethod
+    @staticmethod # Used to create a Virtual Camera
     def viewpoint(position, orientation, fieldOfView):
-        """Function for the virtual camera"""
 
         screen_matrix = np.diag([GL.width/2,-GL.height/2,1,1])
         screen_matrix[3] = [GL.width/2,GL.height/2,0,1]
@@ -217,9 +199,8 @@ class GL:
         #print("\n View: \n{0}".format(view_matrix), end="\n")
         GL.view_matrix = view_matrix
 
-    @staticmethod
+    @staticmethod # Used to manage Input Transformation
     def transform_in(translation, scale, rotation):
-        """Function to manage inputed transformations"""
 
         try: scale 
         except: scale = np.full(3,1)
@@ -244,15 +225,12 @@ class GL:
         #print("\n Transform IN: \n{0}".format(model_matrix), end="\n")
         GL.stack.append(np.matmul(GL.stack[-1],model_matrix))
         
-    @staticmethod
+    @staticmethod # Used to delete last Input Transformation
     def transform_out():
-        """Delete last transform IN"""
-
         GL.stack.pop()
 
-    @staticmethod
+    @staticmethod # Strip of triangles (stripCount determines the lenth of each strip)
     def triangleStripSet(point, stripCount, colors):
-        """Strip of triangles; whitch stripCount is a list that determines the lenth of each strip"""
 
         strip = []
         for i in range(len(point)//3):
@@ -272,9 +250,8 @@ class GL:
                 GL.triangleSet(strip[i]+strip[i+2]+strip[i+1],colors)
             stripEnd += 1
                 
-    @staticmethod
+    @staticmethod # Strip of triangles (index determines by -1 the lenth of each strip)
     def indexedTriangleStripSet(point, index, colors):
-        """Strip of triangles; whitch index is a list that determines the connection and end of each strip by -1"""
 
         strip = []
         for i in range(len(point)//3):
@@ -292,7 +269,31 @@ class GL:
                 try: GL.triangleSet(strip[i]+strip[i+2]+strip[i+1],colors)
                 except: continue
 
-        print(colors)
+    @staticmethod # Used to create a 3D Face on screen
+    def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
+                       texCoord, texCoordIndex, colors, current_texture):
+        """Função usada para renderizar IndexedFaceSet."""
+        # Adicionalmente essa implementação do IndexedFace aceita cores por vértices, assim
+        # se a flag colorPerVertex estiver habilitada, os vértices também possuirão cores
+        # que servem para definir a cor interna dos poligonos, para isso faça um cálculo
+        # baricêntrico de que cor deverá ter aquela posição. Da mesma forma se pode definir uma
+        # textura para o poligono, para isso, use as coordenadas de textura e depois aplique a
+        # cor da textura conforme a posição do mapeamento. Dentro da classe GPU já está
+        # implementadado um método para a leitura de imagens.
+
+        #print("colorPerVertex = {0}".format(colorPerVertex))
+        #if colorPerVertex and color and colorIndex:
+            #print("\tcores(r, g, b) = {0}, colorIndex = {1}".format(color, colorIndex))
+        #if texCoord and texCoordIndex:
+        #    print("\tpontos(u, v) = {0}, texCoordIndex = {1}".format(texCoord, texCoordIndex))
+        #if current_texture:
+        #    image = gpu.GPU.load_texture(current_texture[0])
+        #    print("\t Matriz com image = {0}".format(image))
+        #    print("\t Dimensões da image = {0}".format(image.shape))
+
+        GL.indexedTriangleStripSet(coord,coordIndex,colors)
+
+    """ PRIMITIVES """
 
     @staticmethod
     def box(size, colors):
@@ -312,46 +313,6 @@ class GL:
         gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
 
     @staticmethod
-    def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
-                       texCoord, texCoordIndex, colors, current_texture):
-        """Função usada para renderizar IndexedFaceSet."""
-        # A função indexedFaceSet é usada para desenhar malhas de triângulos. Ela funciona de
-        # forma muito simular a IndexedTriangleStripSet porém com mais recursos.
-        # Você receberá as coordenadas dos pontos no parâmetro cord, esses
-        # pontos são uma lista de pontos x, y, e z sempre na ordem. Assim coord[0] é o valor
-        # da coordenada x do primeiro ponto, coord[1] o valor y do primeiro ponto, coord[2]
-        # o valor z da coordenada z do primeiro ponto. Já coord[3] é a coordenada x do
-        # segundo ponto e assim por diante. No IndexedFaceSet uma lista de vértices é informada
-        # em coordIndex, o valor -1 indica que a lista acabou.
-        # A ordem de conexão será de 3 em 3 pulando um índice. Por exemplo: o
-        # primeiro triângulo será com os vértices 0, 1 e 2, depois serão os vértices 1, 2 e 3,
-        # depois 2, 3 e 4, e assim por diante.
-        # Adicionalmente essa implementação do IndexedFace aceita cores por vértices, assim
-        # se a flag colorPerVertex estiver habilitada, os vértices também possuirão cores
-        # que servem para definir a cor interna dos poligonos, para isso faça um cálculo
-        # baricêntrico de que cor deverá ter aquela posição. Da mesma forma se pode definir uma
-        # textura para o poligono, para isso, use as coordenadas de textura e depois aplique a
-        # cor da textura conforme a posição do mapeamento. Dentro da classe GPU já está
-        # implementadado um método para a leitura de imagens.
-
-        # Os prints abaixo são só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        #print("IndexedFaceSet : ")
-        #if coord:
-           # print("\tpontos(x, y, z) = {0}, coordIndex = {1}".format(coord, coordIndex))
-        #print("colorPerVertex = {0}".format(colorPerVertex))
-        #if colorPerVertex and color and colorIndex:
-            #print("\tcores(r, g, b) = {0}, colorIndex = {1}".format(color, colorIndex))
-        #if texCoord and texCoordIndex:
-        #    print("\tpontos(u, v) = {0}, texCoordIndex = {1}".format(texCoord, texCoordIndex))
-        #if current_texture:
-        #    image = gpu.GPU.load_texture(current_texture[0])
-        #    print("\t Matriz com image = {0}".format(image))
-        #    print("\t Dimensões da image = {0}".format(image.shape))
-        #print("IndexedFaceSet : colors = {0}".format(colors))  # imprime no terminal as core
-
-        GL.indexedTriangleStripSet(coord,coordIndex,colors)
-
-    @staticmethod
     def sphere(radius, colors):
         """Função usada para renderizar Esferas."""
         # A função sphere é usada para desenhar esferas na cena. O esfera é centrada no
@@ -363,6 +324,8 @@ class GL:
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
         print("Sphere : radius = {0}".format(radius)) # imprime no terminal o raio da esfera
         print("Sphere : colors = {0}".format(colors)) # imprime no terminal as cores
+
+    """ LIGHT """
 
     @staticmethod
     def navigationInfo(headlight):
@@ -420,6 +383,8 @@ class GL:
         # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
         print("Fog : color = {0}".format(color)) # imprime no terminal
         print("Fog : visibilityRange = {0}".format(visibilityRange))
+
+    """ TIMERS """
 
     @staticmethod
     def timeSensor(cycleInterval, loop):
@@ -490,7 +455,8 @@ class GL:
 
         return value_changed
 
-    # Para o futuro (Não para versão atual do projeto.)
+    """ FUTURE """
+    
     def vertex_shader(self, shader):
         """Para no futuro implementar um vertex shader."""
 
