@@ -139,24 +139,8 @@ class GL:
     @staticmethod # Used to create a 3D Triangle on screen
     def triangleSet(point, colors):
 
-        point_matrix = np.array([point[i:i + 3] + [1] for i in range(0, len(point), 3)]).transpose()
+        vertices = lab3D.CreateTriangle3D(point,GL.view_matrix,GL.stack)
 
-        #print("\n Pontos: \n{0}".format(point_matrix), end="\n")
-
-        render_matrix = np.identity(4)
-        render_matrix = np.matmul(render_matrix,GL.view_matrix)
-        render_matrix = np.matmul(render_matrix,GL.stack[-1])
-        render_matrix = np.matmul(render_matrix,point_matrix)
-
-        for i in range(render_matrix.shape[1]):
-            render_matrix[0][i] /= render_matrix[3][i]
-            render_matrix[1][i] /= render_matrix[3][i]
-            render_matrix[2][i] /= render_matrix[3][i]
-            render_matrix[3][i] /= render_matrix[3][i]
-
-        vertices = np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
-                                   for i in range(render_matrix.shape[1])],axis=0).tolist()
-        
         #print("\n Render: \n{0}".format(vertices), end="\n")
         GL.triangleSet2D(vertices, colors)
 
@@ -232,11 +216,7 @@ class GL:
     @staticmethod # Strip of triangles (stripCount determines the lenth of each strip)
     def triangleStripSet(point, stripCount, colors):
 
-        strip = []
-        for i in range(len(point)//3):
-            i *= 3
-
-            strip.append([point[i],point[i+1],point[i+2]])
+        strip = lab3D.Strip(point)
         
         stripEnd = 0
         for i in range(len(strip)-2):
@@ -245,20 +225,18 @@ class GL:
                 stripEnd = 0
                 continue
             elif i%2 == 0:
-                GL.triangleSet(strip[i]+strip[i+1]+strip[i+2],colors)
-            else:
-                GL.triangleSet(strip[i]+strip[i+2]+strip[i+1],colors)
+                try: GL.triangleSet(strip[i]+strip[i+1]+strip[i+2],colors)
+                except: continue
+            elif i%2 != 0:
+                try: GL.triangleSet(strip[i]+strip[i+2]+strip[i+1],colors)
+                except: continue
             stripEnd += 1
                 
     @staticmethod # Strip of triangles (index determines by -1 the lenth of each strip)
     def indexedTriangleStripSet(point, index, colors):
 
-        strip = []
-        for i in range(len(point)//3):
-            i *= 3
+        strip = lab3D.Strip(point)
 
-            strip.append([point[i],point[i+1],point[i+2]])
-        
         for i in index:
             if i == -1:
                 continue
@@ -272,28 +250,55 @@ class GL:
     @staticmethod # Used to create a 3D Face on screen
     def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
                        texCoord, texCoordIndex, colors, current_texture):
-        """Função usada para renderizar IndexedFaceSet."""
-        # Adicionalmente essa implementação do IndexedFace aceita cores por vértices, assim
-        # se a flag colorPerVertex estiver habilitada, os vértices também possuirão cores
-        # que servem para definir a cor interna dos poligonos, para isso faça um cálculo
-        # baricêntrico de que cor deverá ter aquela posição. Da mesma forma se pode definir uma
-        # textura para o poligono, para isso, use as coordenadas de textura e depois aplique a
-        # cor da textura conforme a posição do mapeamento. Dentro da classe GPU já está
-        # implementadado um método para a leitura de imagens.
+        
+        colors = (np.array(colors['emissiveColor'])*255).tolist()
+        colors = [int(color) for color in colors]
 
-        #print("colorPerVertex = {0}".format(colorPerVertex))
-        #if colorPerVertex and color and colorIndex:
-            #print("\tcores(r, g, b) = {0}, colorIndex = {1}".format(color, colorIndex))
-        #if texCoord and texCoordIndex:
-        #    print("\tpontos(u, v) = {0}, texCoordIndex = {1}".format(texCoord, texCoordIndex))
-        #if current_texture:
-        #    image = gpu.GPU.load_texture(current_texture[0])
-        #    print("\t Matriz com image = {0}".format(image))
-        #    print("\t Dimensões da image = {0}".format(image.shape))
+        strip = lab3D.Strip(coord)
 
-        GL.indexedTriangleStripSet(coord,coordIndex,colors)
-        print("Professor eu n tenho ideia de como eu vou implementar as funções de cor se o triangleset não me permite usar indice")
-        print(" Area = abs(x0(y1-y2)+x1(y2-y1)+x2(y0-y1))/2 ")
+        face = []
+        for i in coordIndex:
+            if i != -1:
+                face.append(i)
+                continue
+            
+            for f in range((len(face)-1)//2):
+                f *= 2
+
+                triangle3D = strip[face[0]]+strip[face[f+1]]+strip[face[f+2]]
+
+                vertices3D = lab3D.CreateTriangle3D(triangle3D,GL.view_matrix,GL.stack)
+
+                for i in range(len(vertices3D)//6):
+                    i *= 6
+
+                    x1, x2, x3 = int(vertices3D[i+0]), int(vertices3D[i+2]), int(vertices3D[i+4])
+                    y1, y2, y3 = int(vertices3D[i+1]), int(vertices3D[i+3]), int(vertices3D[i+5])
+
+                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
+                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+
+                    for y in range(ymin,ymax):
+                        for x in range(xmin,xmax):
+                            
+                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                            if linha1 < 0:
+                                continue
+                            
+                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                            if linha2 < 0:
+                                continue
+
+                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
+                            if linha3 < 0:
+                                continue
+
+                            if (x < 0 or x >= GL.width) or (y < 0 or y >= GL.height):
+                                continue               
+                                
+                            gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+
+            face = []
 
     """ PRIMITIVES """
 
@@ -313,6 +318,7 @@ class GL:
 
         # Exemplo de desenho de um pixel branco na coordenada 10, 10
         gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+
     @staticmethod
     def sphere(radius, colors):
         """Função usada para renderizar Esferas."""
