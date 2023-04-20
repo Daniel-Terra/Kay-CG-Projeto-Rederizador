@@ -36,6 +36,7 @@ class GPU:
 
     RGB8 = 0b001  # Valores para Vermelho, Verde, Azul de 8bits cada (0-255)
     RGBA8 = 0b010  # Valores para Vermelho, Verde, Azul e Transpareência de 8bits cada (0-255)
+    
     DEPTH_COMPONENT16 = 0b101  # Valores para Profundidade de 16bits cada (0-65535)
     DEPTH_COMPONENT32F = 0b110  # Valores para Profundidade de 32bits em float
 
@@ -175,7 +176,6 @@ class GPU:
 
             else:
                 raise Exception(f"Modo inválido de leitura do Frame buffer ({mode})")
-
 
     @staticmethod
     def read_pixel(coord, mode):

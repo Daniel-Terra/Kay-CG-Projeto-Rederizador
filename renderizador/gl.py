@@ -17,6 +17,8 @@ import math         # Funções matemáticas
 import numpy as np  # Biblioteca do Numpy
 import lab3D
 
+import random
+
 class GL:
     """Classe que representa a biblioteca gráfica (Graphics Library)."""
 
@@ -32,8 +34,8 @@ class GL:
     @staticmethod # Used to setup the environment
     def setup(width, height, near=0.01, far=1000):
 
-        GL.width = width
-        GL.height = height
+        GL.width = width*2
+        GL.height = height*2
         GL.near = near
         GL.far = far
 
@@ -251,9 +253,17 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
                        texCoord, texCoordIndex, colors, current_texture):
         
+        #print("Debug: 0:None, 1:Pixel, 2:Triangle, 3:Face") # DEBUG LIST
+        #debug = input("Choose structure:") # DEBUG ENTRY
+        debug = 2
+        
+        # -----COLOR-----
         colors = (np.array(colors['emissiveColor'])*255).tolist()
         colors = [int(color) for color in colors]
 
+        colors = lab3D.ColorRandom() if int(debug) == 3 else colors # DEBUG FACE
+
+        # -----OBJECT-----
         strip = lab3D.Strip(coord)
 
         face = []
@@ -278,6 +288,8 @@ class GL:
                     xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
                     xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
 
+                    colors = lab3D.ColorRandom() if int(debug) == 2 else colors # DEBUG TRIANGLE
+
                     for y in range(ymin,ymax):
                         for x in range(xmin,xmax):
                             
@@ -295,7 +307,9 @@ class GL:
 
                             if (x < 0 or x >= GL.width) or (y < 0 or y >= GL.height):
                                 continue               
-                                
+
+                            colors = lab3D.ColorRandom() if int(debug) == 1 else colors # DEBUG PIXEL
+
                             gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
 
             face = []

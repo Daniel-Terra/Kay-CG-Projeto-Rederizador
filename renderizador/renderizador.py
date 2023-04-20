@@ -20,9 +20,10 @@ import gpu          # Simula os recursos de uma GPU
 import x3d          # Faz a leitura do arquivo X3D, gera o grafo de cena e faz traversal
 import scenegraph   # Imprime o grafo de cena no console
 
+import numpy as np
+
 LARGURA = 60  # Valor padrão para largura da tela
 ALTURA = 40   # Valor padrão para altura da tela
-
 
 class Renderizador:
     """Realiza a renderização da cena informada."""
@@ -38,30 +39,26 @@ class Renderizador:
 
     def setup(self):
         """Configura o sistema para a renderização."""
-        # Configurando color buffers para exibição na tela
 
-        # Cria uma (1) posição de FrameBuffer na GPU
-        fbo = gpu.GPU.gen_framebuffers(1)
-
-        # Define o atributo FRONT como o FrameBuffe principal
+        fbo = gpu.GPU.gen_framebuffers(2)
+        print("List of generated FrameBuffers: {}".format(fbo))
+        
         self.framebuffers["FRONT"] = fbo[0]
-
-        # Define que a posição criada será usada para desenho e leitura
-        gpu.GPU.bind_framebuffer(gpu.GPU.FRAMEBUFFER, self.framebuffers["FRONT"])
-        # Opções:
-        # - DRAW_FRAMEBUFFER: Faz o bind só para escrever no framebuffer
-        # - READ_FRAMEBUFFER: Faz o bind só para leitura no framebuffer
-        # - FRAMEBUFFER: Faz o bind para leitura e escrita no framebuffer
-
-        # Aloca memória no FrameBuffer para um tipo e tamanho especificado de buffer
-
-        # Memória de Framebuffer para canal de cores
+        self.framebuffers["SUPER"] = fbo[1]
+        print(self.framebuffers)
+        
+        # --- FRONT ----
         gpu.GPU.framebuffer_storage(
             self.framebuffers["FRONT"],
-            gpu.GPU.COLOR_ATTACHMENT,
-            gpu.GPU.RGB8,
-            self.width,
-            self.height
+            gpu.GPU.COLOR_ATTACHMENT, gpu.GPU.RGB8,
+            self.width, self.height
+        )
+
+        # --- SUPER ----
+        gpu.GPU.framebuffer_storage(
+            self.framebuffers["SUPER"],
+            gpu.GPU.COLOR_ATTACHMENT, gpu.GPU.RGB8,
+            self.width*2, self.height*2
         )
 
         # Descomente as seguintes linhas se for usar um Framebuffer para profundidade
@@ -101,16 +98,28 @@ class Renderizador:
         # Limpa o frame buffers atual
         gpu.GPU.clear_buffer()
 
-        # Recursos que podem ser úteis:
-        # Define o valor do pixel no framebuffer: draw_pixel(coord, mode, data)
-        # Retorna o valor do pixel no framebuffer: read_pixel(coord, mode)
+        gpu.GPU.bind_framebuffer(gpu.GPU.DRAW_FRAMEBUFFER, self.framebuffers["SUPER"])
 
     def pos(self):
         """Rotinas pós renderização."""
-        # Função invocada após o processo de renderização terminar.
 
-        # Método para a troca dos buffers (NÃO IMPLEMENTADO)
-        gpu.GPU.swap_buffers()
+        gpu.GPU.bind_framebuffer(gpu.GPU.READ_FRAMEBUFFER, self.framebuffers["SUPER"])
+
+        gpu.GPU.bind_framebuffer(gpu.GPU.DRAW_FRAMEBUFFER, self.framebuffers["FRONT"])
+        
+        for x in range(self.width-1):
+            for y in range(self.height-1):
+
+                x1 = gpu.GPU.read_pixel([x*2+0,y*2],gpu.GPU.RGB8)
+                x2 = gpu.GPU.read_pixel([x*2+1,y*2],gpu.GPU.RGB8)
+                y1 = gpu.GPU.read_pixel([x*2,y*2+0],gpu.GPU.RGB8)
+                y2 = gpu.GPU.read_pixel([x*2,y*2+1],gpu.GPU.RGB8)
+
+                AVGcolor = (x1*.25 + x2*.25 + y1*.25 + y2*.25)
+
+                gpu.GPU.draw_pixel([x,y],gpu.GPU.RGB8,AVGcolor)
+
+        gpu.GPU.bind_framebuffer(gpu.GPU.READ_FRAMEBUFFER, self.framebuffers["FRONT"])
 
     def mapping(self):
         """Mapeamento de funções para as rotinas de renderização."""

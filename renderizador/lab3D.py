@@ -1,4 +1,5 @@
 import numpy as np
+import random as rd
 
 def CreateTriangle3D(point,view_matrix,stack):
 
@@ -17,6 +18,9 @@ def CreateTriangle3D(point,view_matrix,stack):
 
     return np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
                            for i in range(render_matrix.shape[1])],axis=0).tolist()
+
+def ColorRandom():
+    return [rd.randint(0, 255) for _ in range(3)]
 
 def Strip(coord):
 
