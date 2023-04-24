@@ -275,11 +275,12 @@ class GL:
 
                 vertices3D = lab3D.CreateTriangle3D(triangle3D,GL.view_matrix,GL.stack)
 
-                for i in range(len(vertices3D)//6):
-                    i *= 6
+                for i in range(len(vertices3D)//9):
+                    i *= 9
 
-                    x = [0, int(vertices3D[i+0]), int(vertices3D[i+2]), int(vertices3D[i+4])]
-                    y = [0, int(vertices3D[i+1]), int(vertices3D[i+3]), int(vertices3D[i+5])]
+                    x = [0, int(vertices3D[i+0]), int(vertices3D[i+3]), int(vertices3D[i+6])]
+                    y = [0, int(vertices3D[i+1]), int(vertices3D[i+4]), int(vertices3D[i+7])]
+                    z = [0, int(vertices3D[i+2]), int(vertices3D[i+5]), int(vertices3D[i+8])]
 
                     xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
                     xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
@@ -302,7 +303,7 @@ class GL:
                             if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
                                 continue
                             
-                            rgb = lab3D.ColorInterp(x,y,colors) if colorPerVertex else lab3D.ColorFlat(colors)
+                            rgb = lab3D.ColorInterp(x,y,z,colors) if colorPerVertex else lab3D.ColorFlat(colors)
                             
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 

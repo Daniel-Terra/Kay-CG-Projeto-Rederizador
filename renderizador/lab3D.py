@@ -13,10 +13,10 @@ def CreateTriangle3D(point,view_matrix,stack):
     for i in range(render_matrix.shape[1]):
         render_matrix[0][i] /= render_matrix[3][i]
         render_matrix[1][i] /= render_matrix[3][i]
-        render_matrix[2][i] /= render_matrix[3][i]
-        render_matrix[3][i] /= render_matrix[3][i]
+        #render_matrix[2][i] /= render_matrix[3][i]
+        #render_matrix[3][i] /= render_matrix[3][i]
 
-    return np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
+    return np.concatenate([[int(render_matrix[0][i]), int(render_matrix[1][i]), render_matrix[2][i]]
                            for i in range(render_matrix.shape[1])],axis=0).tolist()
 
 def Strip(coord):
@@ -51,19 +51,24 @@ def ColorFlat(flat_color):
     flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
     return flat_color
 
-def ColorInterp(x,y,colors):
+def ColorInterp(x,y,z,colors):
     
-    area = abs(x[1]*(y[2]-y[3])+x[2]*(y[3]-y[1])+x[3]*(y[1]-y[2]))/2
+    area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
 
     interp = [0,1,2]
-    interp[0] = abs(x[0]*(y[2]-y[3])+x[2]*(y[3]-y[0])+x[3]*(y[0]-y[2]))/2/area
-    interp[1] = abs(x[0]*(y[3]-y[1])+x[3]*(y[1]-y[0])+x[1]*(y[0]-y[3]))/2/area
-    interp[2] = abs(x[0]*(y[1]-y[2])+x[1]*(y[2]-y[0])+x[2]*(y[0]-y[1]))/2/area
+    interp[0] = abs(x[0]*(y[2]-y[3]) + x[2]*(y[3]-y[0]) + x[3]*(y[0]-y[2])) /2/area
+    interp[1] = abs(x[0]*(y[3]-y[1]) + x[3]*(y[1]-y[0]) + x[1]*(y[0]-y[3])) /2/area
+    interp[2] = abs(x[0]*(y[1]-y[2]) + x[1]*(y[2]-y[0]) + x[2]*(y[0]-y[1])) /2/area
 
     rgb = [0,1,2]
     rgb[0] = colors[0][0]*interp[0] + colors[1][0]*interp[1] + colors[2][0]*interp[2]
     rgb[1] = colors[0][1]*interp[0] + colors[1][1]*interp[1] + colors[2][1]*interp[2]
     rgb[2] = colors[0][2]*interp[0] + colors[1][2]*interp[1] + colors[2][2]*interp[2]
+
+    z[0] = 1/(interp[0]/z[1] + interp[1]/z[2] + interp[2]/z[3])
+    rgb[0] = z[0]*(colors[0][0]*interp[0]/z[1] + colors[1][0]*interp[1]/z[2] + colors[2][0]*interp[2]/z[3])
+    rgb[1] = z[0]*(colors[0][1]*interp[0]/z[1] + colors[1][1]*interp[1]/z[2] + colors[2][1]*interp[2]/z[3])
+    rgb[2] = z[0]*(colors[0][2]*interp[0]/z[1] + colors[1][2]*interp[1]/z[2] + colors[2][2]*interp[2]/z[3])
 
     rgb = (np.array(rgb)*255).astype(int)
 
