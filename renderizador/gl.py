@@ -251,6 +251,8 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
                        texCoord, texCoordIndex, colors, current_texture):
         
+        color = [color[i:i + 3] for i in range(0, len(color), 3)]
+
         strip = lab3D.Strip(coord)
 
         face = []
@@ -261,6 +263,8 @@ class GL:
             
             for f in range((len(face)-1)//2):
                 f *= 2
+
+                colors = [color[i] for i in face] if colorPerVertex else colors
 
                 triangle3D = strip[face[0]]+strip[face[f+1]]+strip[face[f+2]]
 
@@ -293,8 +297,7 @@ class GL:
                             if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
                                 continue
                             
-                            #rgb = lab3D.ColorInterp(x,x1,x2,x3,y,y1,y2,y3,color) if colorPerVertex else lab3D.ColorFlat(colors)
-                            rgb = lab3D.ColorFlat(colors)
+                            rgb = lab3D.ColorInterp(x,y,colors) if colorPerVertex else lab3D.ColorFlat(colors)
 
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
