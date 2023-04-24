@@ -29,6 +29,10 @@ class GL:
     view_matrix = np.identity(4)
     stack = [np.identity(4)]
 
+    #Base Color
+    base_color = {'diffuseColor': [0.8, 0.8, 0.8], 'emissiveColor': [1.0, 1.0, 1.0],
+                  'specularColor': [0.0, 0.0, 0.0], 'shininess': 0.2, 'transparency': 0.0}
+
     @staticmethod # Used to setup the environment
     def setup(width, height, near=0.01, far=1000):
 
@@ -248,10 +252,11 @@ class GL:
                 except: continue
 
     @staticmethod # Used to create a 3D Face on screen
-    def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
-                       texCoord, texCoordIndex, colors, current_texture):
-        
-        color = [color[i:i + 3] for i in range(0, len(color), 3)]
+    def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
+                       texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
+
+        colorPerVertex = False if color == None else colorPerVertex # Veio padrão True??
+        color = [color[i:i + 3] for i in range(0, len(color), 3)] if colorPerVertex else None
 
         strip = lab3D.Strip(coord)
 
@@ -298,7 +303,7 @@ class GL:
                                 continue
                             
                             rgb = lab3D.ColorInterp(x,y,colors) if colorPerVertex else lab3D.ColorFlat(colors)
-
+                            
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
             face = []
@@ -315,12 +320,9 @@ class GL:
         # essa caixa você vai provavelmente querer tesselar ela em triângulos, para isso
         # encontre os vértices e defina os triângulos.
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Box : size = {0}".format(size)) # imprime no terminal pontos
-        print("Box : colors = {0}".format(colors)) # imprime no terminal as cores
-
-        # Exemplo de desenho de um pixel branco na coordenada 10, 10
-        gpu.GPU.draw_pixel([10, 10], gpu.GPU.RGB8, [255, 255, 255])  # altera pixel
+        # Não sei não, só n rolou
+        GL.indexedFaceSet([-3.0, 0.5, -0.5, 3.0, 0.5, 0.5, -3.0, 1.5, -0.5, 3.0, 1.5, 0.5],
+                          [0, 1, 2, -1, 1, 3, 2, -1])
 
     @staticmethod
     def sphere(radius, colors):

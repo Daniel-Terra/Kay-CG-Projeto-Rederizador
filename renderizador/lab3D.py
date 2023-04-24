@@ -47,8 +47,7 @@ def Tfovy(fovx, width, height):
     return np.tan(2*np.tan(fovx/2)*(height/(height**2+width**2)**.5))
 
 def ColorFlat(flat_color):
-    flat_color = (np.array(flat_color['emissiveColor'])*255).tolist()
-    flat_color = [int(color) for color in flat_color]
+    flat_color = (np.array(flat_color['emissiveColor'])*255).astype(int).tolist()
     flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
     return flat_color
 
