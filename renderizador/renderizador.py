@@ -39,13 +39,11 @@ class Renderizador:
 
     def setup(self):
         """Configura o sistema para a renderização."""
-
-        fbo = gpu.GPU.gen_framebuffers(2)
-        print("List of generated FrameBuffers: {}".format(fbo))
         
+        # Creating all framebuffers
+        fbo = gpu.GPU.gen_framebuffers(2)
         self.framebuffers["FRONT"] = fbo[0]
         self.framebuffers["SUPER"] = fbo[1]
-        print(self.framebuffers)
         
         # --- FRONT ----
         gpu.GPU.framebuffer_storage(

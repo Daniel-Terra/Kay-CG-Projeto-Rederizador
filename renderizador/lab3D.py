@@ -19,9 +19,6 @@ def CreateTriangle3D(point,view_matrix,stack):
     return np.concatenate([ [int(render_matrix[0][i]), int(render_matrix[1][i])] 
                            for i in range(render_matrix.shape[1])],axis=0).tolist()
 
-def ColorRandom():
-    return [rd.randint(0, 255) for _ in range(3)]
-
 def Strip(coord):
 
     strip = []
@@ -49,8 +46,16 @@ def Rotate3D(rotation):
 def Tfovy(fovx, width, height):
     return np.tan(2*np.tan(fovx/2)*(height/(height**2+width**2)**.5))
 
-# CORES POR VÉRTICE
-#area = abs(x1(y2-y3)+x2(y3-y1)+x3(y1-y2))/2
-#alph = abs(x(y2-y3)+x2(y3-y)+x3(y-y2))/2/area
-#beta = abs(x(y3-y1)+x3(y1-y)+x1(y-y3))/2/area
-#gama = abs(x(y1-y2)+x1(y2-y)+x2(y-y1))/2/area
+def ColorFlat(flat_color):
+    flat_color = (np.array(flat_color['emissiveColor'])*255).tolist()
+    flat_color = [int(color) for color in flat_color]
+    flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
+    return flat_color
+
+def ColorInterp(x,x1,x2,x3,y,y1,y2,y3):
+    area = abs(x1(y2-y3)+x2(y3-y1)+x3(y1-y2))/2
+    alph = abs(x(y2-y3)+x2(y3-y)+x3(y-y2))/2/area
+    beta = abs(x(y3-y1)+x3(y1-y)+x1(y-y3))/2/area
+    gama = abs(x(y1-y2)+x1(y2-y)+x2(y-y1))/2/area
+
+    return [rd.randint(0, 255) for _ in range(3)]

@@ -17,8 +17,6 @@ import math         # Funções matemáticas
 import numpy as np  # Biblioteca do Numpy
 import lab3D
 
-import random
-
 class GL:
     """Classe que representa a biblioteca gráfica (Graphics Library)."""
 
@@ -253,17 +251,6 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex, color, colorIndex,
                        texCoord, texCoordIndex, colors, current_texture):
         
-        #print("Debug: 0:None, 1:Pixel, 2:Triangle, 3:Face") # DEBUG LIST
-        #debug = input("Choose structure:") # DEBUG ENTRY
-        debug = 2
-        
-        # -----COLOR-----
-        colors = (np.array(colors['emissiveColor'])*255).tolist()
-        colors = [int(color) for color in colors]
-
-        colors = lab3D.ColorRandom() if int(debug) == 3 else colors # DEBUG FACE
-
-        # -----OBJECT-----
         strip = lab3D.Strip(coord)
 
         face = []
@@ -282,35 +269,34 @@ class GL:
                 for i in range(len(vertices3D)//6):
                     i *= 6
 
-                    x1, x2, x3 = int(vertices3D[i+0]), int(vertices3D[i+2]), int(vertices3D[i+4])
-                    y1, y2, y3 = int(vertices3D[i+1]), int(vertices3D[i+3]), int(vertices3D[i+5])
+                    x = [0, int(vertices3D[i+0]), int(vertices3D[i+2]), int(vertices3D[i+4])]
+                    y = [0, int(vertices3D[i+1]), int(vertices3D[i+3]), int(vertices3D[i+5])]
 
-                    xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
-                    xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+                    xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
+                    xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
 
-                    colors = lab3D.ColorRandom() if int(debug) == 2 else colors # DEBUG TRIANGLE
+                    for y[0] in range(ymin,ymax):
+                        for x[0] in range(xmin,xmax):
 
-                    for y in range(ymin,ymax):
-                        for x in range(xmin,xmax):
-                            
-                            linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
+                            linha1 = (y[2]-y[1])*x[0] - (x[2]-x[1])*y[0] + y[1]*(x[2]-x[1]) - x[1]*(y[2]-y[1])
                             if linha1 < 0:
                                 continue
                             
-                            linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
+                            linha2 = (y[3]-y[2])*x[0] - (x[3]-x[2])*y[0] + y[2]*(x[3]-x[2]) - x[2]*(y[3]-y[2])
                             if linha2 < 0:
                                 continue
 
-                            linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
+                            linha3 = (y[1]-y[3])*x[0] - (x[1]-x[3])*y[0] + y[3]*(x[1]-x[3]) - x[3]*(y[1]-y[3])
                             if linha3 < 0:
                                 continue
 
-                            if (x < 0 or x >= GL.width) or (y < 0 or y >= GL.height):
-                                continue               
+                            if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
+                                continue
+                            
+                            #rgb = lab3D.ColorInterp(x,x1,x2,x3,y,y1,y2,y3,color) if colorPerVertex else lab3D.ColorFlat(colors)
+                            rgb = lab3D.ColorFlat(colors)
 
-                            colors = lab3D.ColorRandom() if int(debug) == 1 else colors # DEBUG PIXEL
-
-                            gpu.GPU.draw_pixel([x, y], gpu.GPU.RGB8, colors)
+                            gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
             face = []
 
