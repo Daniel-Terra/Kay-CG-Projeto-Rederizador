@@ -255,10 +255,15 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
         
-        print(texCoord,texCoordIndex,current_texture)
+        # O QUE FALTA FAZER:
+        # TRANSPARÊNCIA(.4), ZBUFFER(.4), TEXTURA(.5), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
 
-        colorPerVertex = False if color == None else colorPerVertex # Veio padrão True??
-        color = [color[i:i + 3] for i in range(0, len(color), 3)] if colorPerVertex else None
+        start = time.process_time()
+
+        texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord)
+        print(texCoord,'\n',texCoordIndex,'\n',current_texture,'\n')
+
+        color = lab3D.ListSlicer(color,3,condition=color)
 
         strip = lab3D.Strip(coord)
 
@@ -271,7 +276,7 @@ class GL:
             for f in range((len(face)-1)//2):
                 f *= 2
 
-                colors = [color[i] for i in face] if colorPerVertex else colors
+                colors = [color[i] for i in face] if color else colors
 
                 triangle3D = strip[face[0]]+strip[face[f+1]]+strip[face[f+2]]
 
@@ -307,13 +312,16 @@ class GL:
                             
                             interp = lab3D.PixelInterp(x,y)
 
-                            rgb = lab3D.ColorInterp(x,y,z,interp,colors) if colorPerVertex else lab3D.ColorFlat(colors)
+                            rgb = lab3D.ColorInterp(z,interp,colors) if color else lab3D.ColorFlat(colors)
                             
-                            rgb = lab3D.Texture() if texCoord else rgb
+                            #rgb = lab3D.Texture(x,y,interp) if texCoord else rgb
 
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
             face = []
+
+        finish = time.process_time()
+        print("Code consumed {} seconds".format(round(finish-start,2)))
 
     """ PRIMITIVES """
 

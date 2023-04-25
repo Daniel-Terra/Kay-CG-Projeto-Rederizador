@@ -46,6 +46,10 @@ def Rotate3D(rotation):
 def Tfovy(fovx, width, height):
     return np.tan(2*np.tan(fovx/2)*(height/(height**2+width**2)**.5))
 
+def ListSlicer(list,slicing,condition=None):
+
+    return [list[i:i + slicing] for i in range(0, len(list), slicing)] if condition else None
+
 def PixelInterp(x,y):
     
     area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
@@ -62,7 +66,7 @@ def ColorFlat(flat_color):
     flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
     return flat_color
 
-def ColorInterp(x,y,z,interp,colors):
+def ColorInterp(z,interp,colors):
     
     rgb = [0,1,2]
     rgb[0] = colors[0][0]*interp[0] + colors[1][0]*interp[1] + colors[2][0]*interp[2]
@@ -82,5 +86,11 @@ def ColorRandom(rgb,JustDoIt):
     
     return [rd.randint(0, 255) for _ in range(3)] if JustDoIt else rgb
 
-def Texture():
+def Texture(x,y,interp):
+
+    U = x[0]*interp[0] + x[1]*interp[1] + x[2]*interp[2]
+    V = y[0]*interp[0] + y[1]*interp[1] + y[2]*interp[2]
+
+    #?????????????????????????????????????????????????
+
     return None
