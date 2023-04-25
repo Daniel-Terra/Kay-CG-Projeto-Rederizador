@@ -254,6 +254,8 @@ class GL:
     @staticmethod # Used to create a 3D Face on screen
     def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
+        
+        print(texCoord,texCoordIndex,current_texture)
 
         colorPerVertex = False if color == None else colorPerVertex # Veio padrão True??
         color = [color[i:i + 3] for i in range(0, len(color), 3)] if colorPerVertex else None
@@ -303,8 +305,12 @@ class GL:
                             if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
                                 continue
                             
-                            rgb = lab3D.ColorInterp(x,y,z,colors) if colorPerVertex else lab3D.ColorFlat(colors)
+                            interp = lab3D.PixelInterp(x,y)
+
+                            rgb = lab3D.ColorInterp(x,y,z,interp,colors) if colorPerVertex else lab3D.ColorFlat(colors)
                             
+                            rgb = lab3D.Texture() if texCoord else rgb
+
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
             face = []

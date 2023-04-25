@@ -46,12 +46,7 @@ def Rotate3D(rotation):
 def Tfovy(fovx, width, height):
     return np.tan(2*np.tan(fovx/2)*(height/(height**2+width**2)**.5))
 
-def ColorFlat(flat_color):
-    flat_color = (np.array(flat_color['emissiveColor'])*255).astype(int).tolist()
-    flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
-    return flat_color
-
-def ColorInterp(x,y,z,colors):
+def PixelInterp(x,y):
     
     area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
 
@@ -60,6 +55,15 @@ def ColorInterp(x,y,z,colors):
     interp[1] = abs(x[0]*(y[3]-y[1]) + x[3]*(y[1]-y[0]) + x[1]*(y[0]-y[3])) /2/area
     interp[2] = abs(x[0]*(y[1]-y[2]) + x[1]*(y[2]-y[0]) + x[2]*(y[0]-y[1])) /2/area
 
+    return interp
+
+def ColorFlat(flat_color):
+    flat_color = (np.array(flat_color['emissiveColor'])*255).astype(int).tolist()
+    flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
+    return flat_color
+
+def ColorInterp(x,y,z,interp,colors):
+    
     rgb = [0,1,2]
     rgb[0] = colors[0][0]*interp[0] + colors[1][0]*interp[1] + colors[2][0]*interp[2]
     rgb[1] = colors[0][1]*interp[0] + colors[1][1]*interp[1] + colors[2][1]*interp[2]
@@ -77,3 +81,6 @@ def ColorInterp(x,y,z,colors):
 def ColorRandom(rgb,JustDoIt):
     
     return [rd.randint(0, 255) for _ in range(3)] if JustDoIt else rgb
+
+def Texture():
+    return None
