@@ -113,39 +113,45 @@ class GL:
     
     @staticmethod # Used to create a 2D Triangle on screen
     def triangleSet2D(vertices, colors):
-
+        
         for i in range(len(vertices)//6):
-            i *= 6
+                    i *= 6
 
-            x1, x2, x3 = int(vertices[i+0]), int(vertices[i+2]), int(vertices[i+4])
-            y1, y2, y3 = int(vertices[i+1]), int(vertices[i+3]), int(vertices[i+5])
+                    x = [0, vertices[i+0], vertices[i+2], vertices[i+4]]
+                    y = [0, vertices[i+1], vertices[i+3], vertices[i+5]]
 
-            xmin, ymin = min(x1,x2,x3), min(y1,y2,y3)
-            xmax, ymax = max(x1,x2,x3), max(y1,y2,y3)
+                    x = np.array(x).astype(int)
+                    y = np.array(y).astype(int)
 
-            for y in range(ymin,ymax):
-                for x in range(xmin,xmax):
-                    
-                    linha1 = (y2-y1)*x - (x2-x1)*y + y1*(x2-x1) - x1*(y2-y1)
-                    if linha1 < 0:
-                        continue
-                    
-                    linha2 = (y3-y2)*x - (x3-x2)*y + y2*(x3-x2) - x2*(y3-y2)
-                    if linha2 < 0:
-                        continue
+                    xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
+                    xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
 
-                    linha3 = (y1-y3)*x - (x1-x3)*y + y3*(x1-x3) - x3*(y1-y3)
-                    if linha3 < 0:
-                        continue
+                    for y[0] in range(ymin,ymax):
+                        for x[0] in range(xmin,xmax):
 
-                    GL.polypoint2D([x,y],colors)
+                            linha1 = (y[2]-y[1])*x[0] - (x[2]-x[1])*y[0] + y[1]*(x[2]-x[1]) - x[1]*(y[2]-y[1])
+                            if linha1 < 0:
+                                continue
+                            
+                            linha2 = (y[3]-y[2])*x[0] - (x[3]-x[2])*y[0] + y[2]*(x[3]-x[2]) - x[2]*(y[3]-y[2])
+                            if linha2 < 0:
+                                continue
+
+                            linha3 = (y[1]-y[3])*x[0] - (x[1]-x[3])*y[0] + y[3]*(x[1]-x[3]) - x[3]*(y[1]-y[3])
+                            if linha3 < 0:
+                                continue
+
+                            if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
+                                continue
+
+                            GL.polypoint2D([x[0], y[0]],colors)
 
     @staticmethod # Used to create a 3D Triangle on screen
     def triangleSet(point, colors):
 
         vertices = lab3D.CreateTriangle3D(point,GL.view_matrix,GL.stack)
+        vertices = vertices[0],vertices[1],vertices[3],vertices[4],vertices[6],vertices[7]
 
-        #print("\n Render: \n{0}".format(vertices), end="\n")
         GL.triangleSet2D(vertices, colors)
 
     @staticmethod # Used to create a Virtual Camera
@@ -254,14 +260,15 @@ class GL:
     @staticmethod # Used to create a 3D Face on screen
     def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
-        
+
         # O QUE FALTA FAZER:
         # TRANSPARÊNCIA(.4), ZBUFFER(.4), TEXTURA(.5), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
 
         start = time.process_time()
 
-        texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord)
-        print(texCoord,'\n',texCoordIndex,'\n',current_texture,'\n')
+        #texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord); texIndex = texCoordIndex
+
+        #image = gpu.GPU.load_texture(current_texture[0]) if texCoord else None
 
         color = lab3D.ListSlicer(color,3,condition=color)
 
@@ -285,9 +292,14 @@ class GL:
                 for i in range(len(vertices3D)//9):
                     i *= 9
 
-                    x = [0, int(vertices3D[i+0]), int(vertices3D[i+3]), int(vertices3D[i+6])]
-                    y = [0, int(vertices3D[i+1]), int(vertices3D[i+4]), int(vertices3D[i+7])]
-                    z = [0, int(vertices3D[i+2]), int(vertices3D[i+5]), int(vertices3D[i+8])]
+                    x = [0, vertices3D[i+0], vertices3D[i+3], vertices3D[i+6]]
+                    y = [0, vertices3D[i+1], vertices3D[i+4], vertices3D[i+7]]
+                    z = [0, vertices3D[i+2], vertices3D[i+5], vertices3D[i+8]]
+
+                    area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
+
+                    x = np.array(x).astype(int)
+                    y = np.array(y).astype(int)
 
                     xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
                     xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
@@ -309,12 +321,12 @@ class GL:
 
                             if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
                                 continue
-                            
-                            interp = lab3D.PixelInterp(x,y)
+
+                            interp = lab3D.PixelInterp(x,y,area)
 
                             rgb = lab3D.ColorInterp(z,interp,colors) if color else lab3D.ColorFlat(colors)
                             
-                            #rgb = lab3D.Texture(x,y,interp) if texCoord else rgb
+                            #rgb = lab3D.Texture(interp,texCoord,texIndex,image) if current_texture[0] else rgb
 
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 

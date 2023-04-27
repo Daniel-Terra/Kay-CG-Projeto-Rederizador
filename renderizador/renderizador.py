@@ -41,7 +41,7 @@ class Renderizador:
         """Configura o sistema para a renderização."""
         
         # Creating all framebuffers
-        fbo = gpu.GPU.gen_framebuffers(3)
+        fbo = gpu.GPU.gen_framebuffers(2)
         self.framebuffers["FRONT"] = fbo[0]
         self.framebuffers["SUPER"] = fbo[1]
         
@@ -79,15 +79,22 @@ class Renderizador:
         # - DEPTH_COMPONENT16: Para canal de Profundidade de 16bits (half-precision) (0-65535)
         # - DEPTH_COMPONENT32F: Para canal de Profundidade de 32bits (single-precision) (float)
 
-        gpu.GPU.clear_color([0, 0, 0]) # Por default preto
-        gpu.GPU.clear_depth(1.0) # Assuma 1.0 o mais afastado e -1.0 o mais próximo da camera
-        self.scene.viewport(width=self.width, height=self.height) # Definindo tamanho do Viewport para renderização
+        # Define cor que ira apagar o FrameBuffer quando clear_buffer() invocado
+        gpu.GPU.clear_color([0, 0, 0])
+
+        # Define a profundidade que ira apagar o FrameBuffer quando clear_buffer() invocado
+        # Assuma 1.0 o mais afastado e -1.0 o mais próximo da camera
+        gpu.GPU.clear_depth(1.0)
+
+        # Definindo tamanho do Viewport para renderização
+        self.scene.viewport(width=self.width, height=self.height)
 
     def pre(self):
         """Rotinas pré renderização."""
         # Função invocada antes do processo de renderização iniciar.
 
-        gpu.GPU.clear_buffer() # Limpa o frame buffers atual
+        # Limpa o frame buffers atual
+        gpu.GPU.clear_buffer()
 
         gpu.GPU.bind_framebuffer(gpu.GPU.DRAW_FRAMEBUFFER, self.framebuffers["SUPER"])
 
