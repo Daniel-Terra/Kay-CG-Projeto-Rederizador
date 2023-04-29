@@ -59,15 +59,22 @@ class Renderizador:
             self.width*2, self.height*2
         )
 
-        # Descomente as seguintes linhas se for usar um Framebuffer para profundidade
-        # gpu.GPU.framebuffer_storage(
-        #     self.framebuffers["FRONT"],
-        #     gpu.GPU.DEPTH_ATTACHMENT,
-        #     gpu.GPU.DEPTH_COMPONENT32F,
-        #     self.width,
-        #     self.height
-        # )
-    
+        # --- SUPER (ZBUFFER)
+        gpu.GPU.framebuffer_storage(
+            self.framebuffers["FRONT"],
+            gpu.GPU.DEPTH_ATTACHMENT,
+            gpu.GPU.DEPTH_COMPONENT32F,
+            self.width*2, self.height*2
+        )
+
+        # --- SUPER (ZBUFFER)
+        gpu.GPU.framebuffer_storage(
+            self.framebuffers["SUPER"],
+            gpu.GPU.DEPTH_ATTACHMENT,
+            gpu.GPU.DEPTH_COMPONENT32F,
+            self.width*2, self.height*2
+        )
+
         # Opções:
         # - COLOR_ATTACHMENT: alocações para as cores da imagem renderizada
         # - DEPTH_ATTACHMENT: alocações para as profundidades da imagem renderizada
@@ -82,7 +89,6 @@ class Renderizador:
         # Define cor que ira apagar o FrameBuffer quando clear_buffer() invocado
         gpu.GPU.clear_color([0, 0, 0])
 
-        # Define a profundidade que ira apagar o FrameBuffer quando clear_buffer() invocado
         # Assuma 1.0 o mais afastado e -1.0 o mais próximo da camera
         gpu.GPU.clear_depth(1.0)
 

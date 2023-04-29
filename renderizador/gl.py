@@ -262,75 +262,85 @@ class GL:
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
 
         # O QUE FALTA FAZER:
-        # TRANSPARÊNCIA(.4), ZBUFFER(.4), TEXTURA(.5), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
+        # TRANSPARÊNCIA(.4), ZBUFFER(.4), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
 
         start = time.process_time()
+        a = []
 
-        #texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord); texIndex = texCoordIndex
+        texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord)
 
-        #image = gpu.GPU.load_texture(current_texture[0]) if texCoord else None
+        image = gpu.GPU.load_texture(current_texture[0]) if texCoord else None
+        mipmap = lab3D.MipMap(image)
 
         color = lab3D.ListSlicer(color,3,condition=color)
 
         strip = lab3D.Strip(coord)
 
-        face = []
-        for i in coordIndex:
-            if i != -1:
-                face.append(i)
+        face,texIndex = [],[]
+        for i in range(len(coordIndex)):
+            if coordIndex[i] != -1:
+                face.append(coordIndex[i])
+                texIndex.append(texCoordIndex[i]) if current_texture else None
                 continue
-            
-            for f in range((len(face)-1)//2):
-                f *= 2
 
-                colors = [color[i] for i in face] if color else colors
+            colors = [color[i] for i in face] if color else colors
 
-                triangle3D = strip[face[0]]+strip[face[f+1]]+strip[face[f+2]]
+            uv = [texCoord[i] for i in texIndex] if current_texture else None
 
-                vertices3D = lab3D.CreateTriangle3D(triangle3D,GL.view_matrix,GL.stack)
+            triangle3D = strip[face[0]]+strip[face[1]]+strip[face[2]]
 
-                for i in range(len(vertices3D)//9):
-                    i *= 9
+            vertices3D = lab3D.CreateTriangle3D(triangle3D,GL.view_matrix,GL.stack)
 
-                    x = [0, vertices3D[i+0], vertices3D[i+3], vertices3D[i+6]]
-                    y = [0, vertices3D[i+1], vertices3D[i+4], vertices3D[i+7]]
-                    z = [0, vertices3D[i+2], vertices3D[i+5], vertices3D[i+8]]
+            for i in range(len(vertices3D)//9):
+                i *= 9
 
-                    area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
+                x = [0, vertices3D[i+0], vertices3D[i+3], vertices3D[i+6]]
+                y = [0, vertices3D[i+1], vertices3D[i+4], vertices3D[i+7]]
+                z = [0, vertices3D[i+2], vertices3D[i+5], vertices3D[i+8]]
 
-                    x = np.array(x).astype(int)
-                    y = np.array(y).astype(int)
+                area = abs(x[1]*(y[2]-y[3]) + x[2]*(y[3]-y[1]) + x[3]*(y[1]-y[2])) /2
 
-                    xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
-                    xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
+                x = np.array(x).astype(int)
+                y = np.array(y).astype(int)
 
-                    for y[0] in range(ymin,ymax):
-                        for x[0] in range(xmin,xmax):
+                xmin, ymin = min(x[1],x[2],x[3]), min(y[1],y[2],y[3])
+                xmax, ymax = max(x[1],x[2],x[3]), max(y[1],y[2],y[3])
 
-                            linha1 = (y[2]-y[1])*x[0] - (x[2]-x[1])*y[0] + y[1]*(x[2]-x[1]) - x[1]*(y[2]-y[1])
-                            if linha1 < 0:
-                                continue
-                            
-                            linha2 = (y[3]-y[2])*x[0] - (x[3]-x[2])*y[0] + y[2]*(x[3]-x[2]) - x[2]*(y[3]-y[2])
-                            if linha2 < 0:
-                                continue
+                for y[0] in range(ymin,ymax):
+                    for x[0] in range(xmin,xmax):
 
-                            linha3 = (y[1]-y[3])*x[0] - (x[1]-x[3])*y[0] + y[3]*(x[1]-x[3]) - x[3]*(y[1]-y[3])
-                            if linha3 < 0:
-                                continue
+                        linha1 = (y[2]-y[1])*x[0] - (x[2]-x[1])*y[0] + y[1]*(x[2]-x[1]) - x[1]*(y[2]-y[1])
+                        if linha1 < 0:
+                            continue
+                        
+                        linha2 = (y[3]-y[2])*x[0] - (x[3]-x[2])*y[0] + y[2]*(x[3]-x[2]) - x[2]*(y[3]-y[2])
+                        if linha2 < 0:
+                            continue
 
-                            if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
-                                continue
+                        linha3 = (y[1]-y[3])*x[0] - (x[1]-x[3])*y[0] + y[3]*(x[1]-x[3]) - x[3]*(y[1]-y[3])
+                        if linha3 < 0:
+                            continue
 
-                            interp = lab3D.PixelInterp(x,y,area)
+                        if (x[0] < 0 or x[0] >= GL.width) or (y[0] < 0 or y[0] >= GL.height):
+                            continue
 
-                            rgb = lab3D.ColorInterp(z,interp,colors) if color else lab3D.ColorFlat(colors)
-                            
-                            #rgb = lab3D.Texture(interp,texCoord,texIndex,image) if current_texture[0] else rgb
+                        interp = lab3D.PixelInterp(x,y,area)
 
-                            gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
+                        z[0] = 1/(interp[0]/z[1] + interp[1]/z[2] + interp[2]/z[3])
 
-            face = []
+                        rgb = lab3D.ColorFlat(colors)
+
+                        rgb = lab3D.ColorInterp(z,interp,colors) if color else rgb
+                        
+                        rgb = lab3D.Texture(z,interp,uv,mipmap) if uv else rgb
+
+                        gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F, [z[0]])
+
+                        a.append(gpu.GPU.read_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F).tolist())
+
+                        gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
+            print(a)
+            face,texIndex = [],[]
 
         finish = time.process_time()
         print("Code consumed {} seconds".format(round(finish-start,2)))

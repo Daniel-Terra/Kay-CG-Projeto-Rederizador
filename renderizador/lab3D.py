@@ -1,5 +1,6 @@
 import numpy as np
 import random as rd
+import gpu
 
 def CreateTriangle3D(point,view_matrix,stack):
 
@@ -60,19 +61,16 @@ def PixelInterp(x,y,area):
     return interp
 
 def ColorFlat(flat_color):
+
     flat_color = (np.array(flat_color['emissiveColor'])*255).astype(int).tolist()
     flat_color = [255,255,255] if flat_color == [0,0,0] else flat_color
+
     return flat_color
 
 def ColorInterp(z,interp,colors):
-    
-    rgb = [0,1,2]
-    rgb[0] = colors[0][0]*interp[0] + colors[1][0]*interp[1] + colors[2][0]*interp[2]
-    rgb[1] = colors[0][1]*interp[0] + colors[1][1]*interp[1] + colors[2][1]*interp[2]
-    rgb[2] = colors[0][2]*interp[0] + colors[1][2]*interp[1] + colors[2][2]*interp[2]
 
-    # COLOCAR FORA?
-    z[0] = 1/(interp[0]/z[1] + interp[1]/z[2] + interp[2]/z[3])
+    rgb = [0,1,2]
+    
     rgb[0] = z[0]*(colors[0][0]*interp[0]/z[1] + colors[1][0]*interp[1]/z[2] + colors[2][0]*interp[2]/z[3])
     rgb[1] = z[0]*(colors[0][1]*interp[0]/z[1] + colors[1][1]*interp[1]/z[2] + colors[2][1]*interp[2]/z[3])
     rgb[2] = z[0]*(colors[0][2]*interp[0]/z[1] + colors[1][2]*interp[1]/z[2] + colors[2][2]*interp[2]/z[3])
@@ -84,22 +82,16 @@ def ColorInterp(z,interp,colors):
 def ColorRandom(rgb,JustDoIt):
     
     return [rd.randint(0, 255) for _ in range(3)] if JustDoIt else rgb
-'''
-def Texture(interp,texCoord,texIndex,image):
 
-    texFace = []
-    for i in texIndex:
-        if i != -1:
-            texFace.append(i)
-            continue
-        
-        for f in range((len(texFace)-1)//2):
-            f *= 2
+def MipMap(image):
 
-            Texture3D = texCoord[texFace[0]]+texCoord[texFace[f+1]]+texCoord[texFace[f+2]]
+    return image
 
-            u = Texture3D[0][0]*interp[1] + Texture3D[0][]*interp[2] + Texture3D[2]*interp[1]
+def Texture(z,interp,uv,image):
 
-        texface = []
+    u = z[0]*(uv[0][0]*interp[0]/z[1] + uv[1][0]*interp[1]/z[2] + uv[2][0]*interp[2]/z[3])
+    v = z[0]*(uv[0][1]*interp[0]/z[1] + uv[1][1]*interp[1]/z[2] + uv[2][1]*interp[2]/z[3])
 
-    return None'''
+    rgb = image[int(image.shape[0]*(1-v))-1,int(image.shape[1]*u)-1][:3]
+
+    return rgb
