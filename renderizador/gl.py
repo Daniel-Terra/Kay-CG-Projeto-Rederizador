@@ -261,11 +261,10 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
 
-        # O QUE FALTA FAZER:
-        # TRANSPARÊNCIA(.4), ZBUFFER(.4), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
+        # O QUE FALTA FAZER: COLOR PAROU DE FUNFAR!!
+        # TRANSPARÊNCIA(.4), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
 
         start = time.process_time()
-        a = []
 
         texCoord = lab3D.ListSlicer(texCoord,2,condition=texCoord)
 
@@ -282,8 +281,8 @@ class GL:
                 face.append(coordIndex[i])
                 texIndex.append(texCoordIndex[i]) if current_texture else None
                 continue
-
-            colors = [color[i] for i in face] if color else colors
+            
+            gradient = [color[i] for i in face] if color else None
 
             uv = [texCoord[i] for i in texIndex] if current_texture else None
 
@@ -330,16 +329,17 @@ class GL:
 
                         rgb = lab3D.ColorFlat(colors)
 
-                        rgb = lab3D.ColorInterp(z,interp,colors) if color else rgb
+                        rgb = lab3D.ColorInterp(z,interp,gradient) if color else rgb
                         
                         rgb = lab3D.Texture(z,interp,uv,mipmap) if uv else rgb
+                        
+                        # LETRAS PARA DE FUNFAR POR ALGUM MOTIVO!
+                        if gpu.GPU.read_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F) < z[0]:
 
-                        gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F, [z[0]])
+                            gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F, [z[0]])
 
-                        a.append(gpu.GPU.read_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F).tolist())
+                            gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
-                        gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
-            print(a)
             face,texIndex = [],[]
 
         finish = time.process_time()

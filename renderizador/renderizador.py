@@ -90,7 +90,7 @@ class Renderizador:
         gpu.GPU.clear_color([0, 0, 0])
 
         # Assuma 1.0 o mais afastado e -1.0 o mais próximo da camera
-        gpu.GPU.clear_depth(1.0)
+        gpu.GPU.clear_depth(np.inf)
 
         # Definindo tamanho do Viewport para renderização
         self.scene.viewport(width=self.width, height=self.height)
@@ -103,11 +103,11 @@ class Renderizador:
         gpu.GPU.clear_buffer()
 
         gpu.GPU.bind_framebuffer(gpu.GPU.DRAW_FRAMEBUFFER, self.framebuffers["SUPER"])
+        
+        gpu.GPU.bind_framebuffer(gpu.GPU.READ_FRAMEBUFFER, self.framebuffers["SUPER"])
 
     def pos(self):
         """Rotinas pós renderização."""
-
-        gpu.GPU.bind_framebuffer(gpu.GPU.READ_FRAMEBUFFER, self.framebuffers["SUPER"])
 
         gpu.GPU.bind_framebuffer(gpu.GPU.DRAW_FRAMEBUFFER, self.framebuffers["FRONT"])
         
