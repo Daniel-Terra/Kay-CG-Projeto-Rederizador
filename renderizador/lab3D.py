@@ -1,6 +1,5 @@
 import numpy as np
 import random as rd
-import gpu
 
 def CreateTriangle3D(point,view_matrix,stack):
 
@@ -58,6 +57,9 @@ def PixelInterp(x,y,area):
         interp[1] = abs(x[0]*(y[3]-y[1]) + x[3]*(y[1]-y[0]) + x[1]*(y[0]-y[3])) /2/area
         interp[2] = abs(x[0]*(y[1]-y[2]) + x[1]*(y[2]-y[0]) + x[2]*(y[0]-y[1])) /2/area
 
+    else:
+        interp = [0,1,2]
+
     return interp
 
 def ColorFlat(flat_color):
@@ -95,3 +97,7 @@ def Texture(z,interp,uv,image):
     rgb = image[int(image.shape[0]*(1-v))-1,int(image.shape[1]*u)-1][:3]
 
     return rgb
+
+def Transparency():
+
+    return None

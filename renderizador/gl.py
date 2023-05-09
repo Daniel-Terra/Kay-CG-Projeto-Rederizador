@@ -261,8 +261,10 @@ class GL:
     def indexedFaceSet(coord, coordIndex, colorPerVertex=False, color=None, colorIndex=None,
                        texCoord=None, texCoordIndex=None, colors=base_color, current_texture=None):
 
-        # O QUE FALTA FAZER: COLOR PAROU DE FUNFAR!!
-        # TRANSPARÊNCIA(.4), PRIMITIVAS(.5), ILUMINAÇÃO(.6), ANIMAÇÃO(.6)
+        # O QUE FALTA FAZER:
+        # TRANSPARÊNCIA(.4) OK,
+        # MIPMAP(.5) HARD, PRIMITIVAS(.5) ESFERA, 
+        # ILUMINAÇÃO(.6) HARD, ANIMAÇÃO(.6) FACIL
 
         start = time.process_time()
 
@@ -333,10 +335,11 @@ class GL:
                         
                         rgb = lab3D.Texture(z,interp,uv,mipmap) if uv else rgb
                         
-                        # LETRAS PARA DE FUNFAR POR ALGUM MOTIVO!
-                        if gpu.GPU.read_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F) < z[0]:
-
+                        if gpu.GPU.read_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F) < z[0] or z[0] < 1:
+                            
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.DEPTH_COMPONENT32F, [z[0]])
+                            
+                            #if transp: rgb = read color mean
 
                             gpu.GPU.draw_pixel([x[0], y[0]], gpu.GPU.RGB8, rgb)
 
@@ -350,29 +353,27 @@ class GL:
     @staticmethod
     def box(size, colors):
         """Função usada para renderizar Boxes."""
-        # A função box é usada para desenhar paralelepípedos na cena. O Box é centrada no
-        # (0, 0, 0) no sistema de coordenadas local e alinhado com os eixos de coordenadas
-        # locais. O argumento size especifica as extensões da caixa ao longo dos eixos X, Y
-        # e Z, respectivamente, e cada valor do tamanho deve ser maior que zero. Para desenha
-        # essa caixa você vai provavelmente querer tesselar ela em triângulos, para isso
-        # encontre os vértices e defina os triângulos.
+        size = (np.array(size)/2).tolist()
 
-        # Não sei não, só n rolou
-        GL.indexedFaceSet([-3.0, 0.5, -0.5, 3.0, 0.5, 0.5, -3.0, 1.5, -0.5, 3.0, 1.5, 0.5],
-                          [0, 1, 2, -1, 1, 3, 2, -1])
+        GL.indexedFaceSet([-size[0], -size[1], -size[2], 
+                            size[0], -size[1], -size[2],
+                            size[0],  size[1], -size[2],
+                           -size[0],  size[1], -size[2],
+                           -size[0], -size[1],  size[2],
+                            size[0], -size[1],  size[2],
+                            size[0],  size[1],  size[2],
+                           -size[0],  size[1],  size[2]],
+                          [0, 5, 1, -1, 0, 4, 5, -1,
+                           1, 2, 6, -1, 1, 6, 5, -1,
+                           2, 7, 3, -1, 2, 7, 6, -1,
+                           3, 4, 0, -1, 3, 7, 4, -1,
+                           4, 5, 6, -1, 4, 7, 6, -1],
+                           colors=colors)
 
     @staticmethod
     def sphere(radius, colors):
         """Função usada para renderizar Esferas."""
-        # A função sphere é usada para desenhar esferas na cena. O esfera é centrada no
-        # (0, 0, 0) no sistema de coordenadas local. O argumento radius especifica o
-        # raio da esfera que está sendo criada. Para desenha essa esfera você vai
-        # precisar tesselar ela em triângulos, para isso encontre os vértices e defina
-        # os triângulos.
 
-        # O print abaixo é só para vocês verificarem o funcionamento, DEVE SER REMOVIDO.
-        print("Sphere : radius = {0}".format(radius)) # imprime no terminal o raio da esfera
-        print("Sphere : colors = {0}".format(colors)) # imprime no terminal as cores
 
     """ LIGHT """
 
